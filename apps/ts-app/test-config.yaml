@@ -2,7 +2,7 @@ default:
   secrets:
     - ./secrets/secret.txt
   pulumi-config:
-    "ts-app:sequelizedb_username": dbuser
-    "ts-app:sequelizedb_password": b18a39b9
-    "ts-app:typeormdb_username": dbuser
-    "ts-app:typeormdb_password": e407b247
+    sequelizedb_username: dbuser
+    sequelizedb_password: b18a39b9
+    typeormdb_username: dbuser
+    typeormdb_password: e407b247
