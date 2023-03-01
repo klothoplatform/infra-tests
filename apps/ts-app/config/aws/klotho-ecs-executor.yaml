@@ -1,0 +1,9 @@
+execution_units:
+  executor:
+    type: ecs
+  task-1:
+    type: lambda
+  task-2:
+    type: ecs
+  task-3:
+    type: eks
