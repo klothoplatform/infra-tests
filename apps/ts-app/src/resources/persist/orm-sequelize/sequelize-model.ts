@@ -12,7 +12,7 @@ async function setupSequelize(): Promise<Sequelize> {
 
     /**
      * @klotho::persist  {
-     *   id = "sequelize-db"
+     *   id = "sequelizeDB"
      * }
      */
     const sequelize = new Sequelize(`sqlite::memory:`, { logging: false });

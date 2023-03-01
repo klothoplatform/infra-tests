@@ -6,7 +6,7 @@ import {KV} from "./typeorm-model"
 export const initialize = async (): Promise<DataSource> => {
 
     /** @klotho::persist  {
-     *   id = "typeorm-db"
+     *   id = "typeormDB"
      * }
      */
     const AppDataSource = new DataSource({
