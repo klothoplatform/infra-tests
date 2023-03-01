@@ -1,12 +1,32 @@
-from util.result import TestResult, Result
+import subprocess
+from pprint import pprint
 from typing import List
 
+from util.result import TestResult, Result
+
+
 class TestRunner:
-    def __init__(self, api_endpoint, upgrade_path, disable_tests):
+    def __init__(self, app_name, api_endpoint, upgrade_path, disable_tests):
+        self.app_name = app_name
         self.api_endpoint = api_endpoint
         self.upgrade_path = upgrade_path
-        self.disable_tests = disable_tests
+        self.disable_tests = disable_tests if disable_tests is not None else ""
 
-    def run(self) -> List[TestResult]:
-        result: List[TestResult] = [TestResult("Fake Test", Result.SUCCESS, "Hardcoded")]
-        return result
+    def run(self) -> list[TestResult]:
+        command = f"""API_URL="{self.api_endpoint}" pytest"""
+        upgrade = "-k 'not upgrade_path' " if self.upgrade_path is False else ""
+        disable_tests = f"--ignore '{self.disable_tests}'" if self.disable_tests != "" else ""
+        args = [command, "-x", f"'./integ-tests/{self.app_name}'", upgrade, disable_tests]
+        print(" ".join(args))
+        result: subprocess.CompletedProcess[bytes] = subprocess.run(args, capture_output=True, shell=True, text=True)
+
+        status = None
+        out = str(result.stdout)
+        err = str(result.stderr)
+        if result.returncode == 0:
+            status = Result.SUCCESS
+        elif result.returncode == 1 and out.endswith("======"):
+            status = Result.TESTS_FAILED
+        else:
+            status = Result.FAILED
+        return [TestResult(self.app_name, status, f"stdout:\n{out}\nstderr:{err}")]

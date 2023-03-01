@@ -6,12 +6,12 @@ import {Entry} from "../resources/persist/orm-sequelize/sequelize-model";
 import * as sequelize from "../resources/persist/orm-sequelize/sequelize-model"
 // const typeOrmDs = typeorm.initialize()
 
-export async function testReadTextSecret(path: string): Promise<string> {
-    return await readSecret(path, "utf-8") as string;
+export async function testReadTextSecret(req, res) {
+    res.send(await readSecret(req.query.name, "utf-8"))
 }
 
-export async function testReadBinarySecret(path: string): Promise<Buffer> {
-    return await readSecret(path) as Buffer;
+export async function testReadBinarySecret(req, res) {
+    res.send(await readSecret(req.query.name))
 }
 
 export async function testWriteTextFile(path: string, content: any) {
