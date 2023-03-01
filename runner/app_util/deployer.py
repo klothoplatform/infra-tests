@@ -1,17 +1,19 @@
 import subprocess
 from pulumi import automation as auto
 from app_util.config import TestConfig
+from util.logging import PulumiLogging
 
 class AppDeployer:
-    def __init__(self, stack: auto.Stack, region: str):
+    def __init__(self, stack: auto.Stack, region: str, pulumi_logger: PulumiLogging):
         self.stack = stack
         self.region = region
+        self.pulumi_logger = pulumi_logger
 
     def configiure_and_deploy(self, cfg: TestConfig) -> str:
         self.configure_region()
         self.configure_pulumi_app(cfg)
         try:
-            self.stack.preview()
+            self.stack.preview(on_output=self.pulumi_logger.log)
         except:
             return ""
         for i in range(0,5):
@@ -25,7 +27,7 @@ class AppDeployer:
 
     # deploy_app deploys the stack and returns the first apiUrl expecting it to be the intended endpoint for tests
     def deploy_app(self) -> str:
-        result: auto.UpResult = self.stack.up(on_output=print)
+        result: auto.UpResult = self.stack.up(on_output=self.pulumi_logger.log)
         output: auto.OutputMap = result.outputs
         output.get("apiUrls")[0]
 

@@ -6,6 +6,7 @@ import logging
 import shortuuid
 from app_util.config import TestConfig
 import shutil
+from util.logging import log
 
 class Builds(Enum):
     RELEASE = "release"
@@ -45,18 +46,21 @@ class AppBuilder:
         except subprocess.CalledProcessError as e:
             print(e)
             return False
-        
+        log.info(f'Successfully built {build} release for path {config_path}')
         self.copy_secrets()
+        log.info(f'Successfully copied secrets for path {config_path}')
         return True
 
         
     def create_pulumi_stack(self) -> auto.Stack:
         stack = auto.create_stack(self.app_name, work_dir=self.output_dir)
+        log.info(f'Successfully created stack for {self.app_name}')
         return stack
 
     def install_npm_deps(self):
         result: subprocess.CompletedProcess[bytes] = subprocess.run(["npm", "install", "--prefix", self.output_dir])
         result.check_returncode()
+        
 
     def get_test_config(self) -> TestConfig:
         cfg = TestConfig(os.path.join(self.directory, "test-config.yaml"), self.app_name)
