@@ -1,0 +1,4 @@
+exposed:
+  ts-gateway-primary:
+    type: apigateway
+    api_type: HTTP
