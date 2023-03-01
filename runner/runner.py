@@ -57,7 +57,7 @@ def run_single(directory, region, disable_tests, provider, appResults):
                 appResults[path] = AppResult(path, Result.DEPLOYMENT_FAILED, [])
                 continue
 
-            test_runner = TestRunner(api_url, upgrade, disable_tests)
+            test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
             path_result.add_test_results(test_runner.run())
             upgrade = True
         
@@ -77,7 +77,7 @@ def run_single(directory, region, disable_tests, provider, appResults):
             appResults[path] = AppResult(path, Result.DEPLOYMENT_FAILED, [])
             continue
 
-        test_runner = TestRunner(api_url, upgrade, disable_tests)
+        test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
         path_result: AppResult = appResults[path]
         path_result.add_test_results(test_runner.run())
 
