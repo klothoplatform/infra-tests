@@ -1,0 +1,8 @@
+default:
+  secrets:
+    - ./secrets/secret.txt
+  pulumi-config:
+    "ts-app:sequelize-db_username": dbuser
+    "ts-app:sequelize-db_password": b18a39b9
+    "ts-app:typeorm-db_username": dbuser
+    "ts-app:typeorm-db_password": e407b247
