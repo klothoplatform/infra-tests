@@ -3,7 +3,6 @@ from pprint import pprint
 from typing import List
 import logging
 from util.result import TestResult, Result
-import os
 
 log = logging.getLogger("TestRunner")
 
@@ -22,7 +21,7 @@ class TestRunner:
         command = f"""API_URL="{self.api_endpoint}" pytest"""
         upgrade = "-k 'not upgrade_path' " if self.upgrade_path is False else ""
         disable_tests = f"--ignore '{self.disable_tests}'" if self.disable_tests != "" else ""
-        args = [command, "-x", f"'./integ-tests/{self.app_name}'", upgrade, disable_tests]
+        args = ["cd integ-tests;", command, "-x", f"'./{self.app_name}'", upgrade, disable_tests]
         print(" ".join(args))
         result: subprocess.CompletedProcess[bytes] = subprocess.run(args, capture_output=True, shell=True, text=True)
 
