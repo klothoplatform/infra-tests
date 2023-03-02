@@ -76,8 +76,12 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                     appResults[result_key].set_result(Result.DEPLOYMENT_FAILED)
                 else:
                     test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
-                    appResults[result_key].add_test_results(test_runner.run())
+                    test_results = test_runner.run()
+                    for test_result in test_results:
+                        log.info(test_result.to_string)
+                    appResults[result_key].add_test_results(test_results)
                 upgrade = True
+                raise("well exit here")
                 
             # Build the app with klotho's mainline version and configure the pulumi config
             stack = build_app(builder, path, appResults, upgrade, stack)
@@ -106,7 +110,8 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                 stack.refresh()
             finally:
                 log.info(f'Removing stack {stack.name}')
-                result: subprocess.CompletedProcess[bytes] = subprocess.run(["pulumi", "stack", "rm", "-s", stack.name])
+                command = f'cd {builder.output_dir}; pwd; pulumi stack rm -s {stack.name}'
+                result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
                 result.check_returncode()
 
 

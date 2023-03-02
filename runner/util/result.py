@@ -34,12 +34,15 @@ class AppResult:
         self.result = result
 
     def add_test_results(self, test_results: List[TestResult]):
+        did_any_test_fail = False
         for result in test_results:
             self.test_results.append(result)
             if result.result is not Result.SUCCESS:
                 self.result = Result.TESTS_FAILED
-            elif self.result is not Result.SUCCESS:
-                self.result = Result.SUCCESS
+                did_any_test_fail = True
+
+        if self.result is Result.STARTED and not did_any_test_fail:
+            self.Result = Result.SUCCESS
 
     def to_string(self):
         string = f'directory: {self.directory}, build: {self.buid}\n\tresult: {self.result}\n'
