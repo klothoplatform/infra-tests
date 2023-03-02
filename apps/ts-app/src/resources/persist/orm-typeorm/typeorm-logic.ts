@@ -27,7 +27,7 @@ export const initialize = async (): Promise<DataSource> => {
 
 const dataSource: Promise<DataSource> = initialize();
 
-export const write = async (key: string, value: string) => {
+export const set = async (key: string, value: string) => {
     const entry = new KV()
     entry.key = key
     entry.value = value
@@ -35,9 +35,9 @@ export const write = async (key: string, value: string) => {
     await KV.save(entry)
 }
 
-export const find = async (key: string) => {
+export async function get (key: string): Promise<string | undefined> {
     await dataSource;
-    return await KV.findOneBy({
+    return (await KV.findOneBy({
         key: key,
-    })
+    }))?.value
 }

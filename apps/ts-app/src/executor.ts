@@ -12,15 +12,7 @@ import multer = require("multer");
  * }
  */
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, '/tmp/')
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '.png') //Appending .png
-    }
-})
-const upload = multer({ storage: storage })
+const upload = multer({ storage: multer.memoryStorage() })
 
 export const primaryRouter = express.Router();
 
