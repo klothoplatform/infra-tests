@@ -1,3 +1,9 @@
+import {isCloudEnv} from "./util";
+
+if (!isCloudEnv) {
+    require('dotenv').config({path: "./local.env"});
+}
+
 import express = require("express");
 import {primaryRouter} from "./executor";
 
@@ -11,7 +17,8 @@ function setupExpressApp() {
 const app = setupExpressApp();
 app.use(primaryRouter)
 
-/* @klotho::expose {
+/**
+ * @klotho::expose {
  *  target = "public"
  *  id = "ts-gateway-primary"
  * }

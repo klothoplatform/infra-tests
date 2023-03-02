@@ -5,11 +5,16 @@ const sequelize = setupSequelize();
 async function setupSequelize(): Promise<Sequelize> {
 
     /**
-     * @klotho::persist  {
-     *   id = "sequelizeDB"
+     * @klotho::persist {
+     *   id = "sequelizeEnvVarDB"
+     *
+     *   [environment_variables]
+     *   ORM_CONNECTION_STRING = "orm.connection_string"
      * }
      */
-    const sequelize = new Sequelize(`sqlite::memory:`, {logging: false});
+    const connString = process.env["ORM_CONNECTION_STRING"]
+
+    const sequelize = new Sequelize(connString!, {logging: false});
 
     console.log("connecting");
     await sequelize.authenticate();
@@ -26,7 +31,7 @@ export interface Entry
 
 const KV = sequelize.then(async (client) => {
     const KV = client.define<Model<InferAttributes<Entry>>>(
-        "sequelize-db-kv",
+        "sequelize-envvar-db-kv",
         {
             key: {
                 type: DataTypes.STRING,

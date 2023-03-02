@@ -5,8 +5,8 @@
  */
 import fs = require("fs/promises");
 import * as path from "path";
+import {isCloudEnv} from "../../util";
 
-const isCloudEnv = process.env["CLOUDCC"] == "true";
 const prefix = isCloudEnv ? "" : "/tmp/"
 
 async function createParentDir(filepath: string) {

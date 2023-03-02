@@ -30,13 +30,15 @@ primaryRouter.get("/test/persist-orm/typeorm-read-kv-entry", persist.testReadTyp
 primaryRouter.post("/test/persist-orm/typeorm-write-kv-entry", persist.testWriteTypeOrmKvEntry);
 primaryRouter.get("/test/persist-orm/sequelize-read-kv-entry", persist.testReadSequelizeKvEntry);
 primaryRouter.post("/test/persist-orm/sequelize-write-kv-entry", persist.testWriteSequelizeKvEntry);
+primaryRouter.get("/test/persist-orm/envvar-read-kv-entry", persist.testReadSequelizeEnvVarKvEntry);
+primaryRouter.post("/test/persist-orm/envvar-write-kv-entry", persist.testWriteSequelizeEnvVarKvEntry);
 
 
 // move testExecuteCrossExecTasks to a separate file after implementation of https://github.com/klothoplatform/klotho-pro/issues/65.
-export async function testExecuteCrossExecTasks(): Promise<Array<ExecResult>> {
-    return Promise.all([
+export async function testExecuteCrossExecTasks(req, res) {
+    res.json(await Promise.all([
         await task1({id: "task-1"}),
         await task2({id: "task-2"}),
         await task3({id: "task-3"})
-    ]);
+    ]));
 }
