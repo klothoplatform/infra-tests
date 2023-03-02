@@ -1,15 +1,18 @@
+from typing import Type, List
 import click
-import pulumi
 from pulumi import automation as auto
 from app_util.builder import AppBuilder, Builds
 from app_util.deployer import AppDeployer
 from test_runner import TestRunner
-import concurrent.futures
 import os
-from util.result import AppResult, Result
-from util.logging import log, PulumiLogging
+from util.result import AppResult, Result, sanitize_result_key
+from util.logging import PulumiLogging, configureLoggers
 import subprocess
 import shortuuid
+import logging
+
+
+log = logging.getLogger("DeploymentRunner")
 
 @click.command()
 @click.option('--directories', type=str, required=True, help='The directories to be compiled')
@@ -17,96 +20,103 @@ import shortuuid
 @click.option('--disable-tests', multiple=True, help='The tests to be disabled')
 @click.option('--provider', type=str, required=True, help='The provider to test')
 def run(directories, region, disable_tests, provider):
-    run_id = shortuuid.ShortUUID.random(length=8)
+    run_id = shortuuid.ShortUUID().random(length=8)
+    configureLoggers(run_id)
+    result_code = 0
+
     log.info(f'Starting run with id: {run_id}')
     # pool = concurrent.futures.ThreadPoolExecutor(max_workers=5)
-    appResults = {}
+    appResults = {str: AppResult}
     for directory in directories.split(","):
         run_single(directory, region, disable_tests, provider, appResults, run_id)
     #     pool.submit(run_single(directory, region, disable_tests, provider, appResults))
     # pool.shutdown(wait=True)
 
-    print(appResults)
+    for key in appResults:
+        result: AppResult = appResults[key]
+        if result.result != Result.SUCCESS:
+            result_code = 1
+        log.info(result.to_string())
+
+    exit(result_code)
 
 
-def run_single(directory, region, disable_tests, provider, appResults, run_id):
-    os.environ['PULUMI_CONFIG_PASSPHRASE'] = ""
-    builder = AppBuilder(directory, provider)
+def run_single(directory: str, region: str, disable_tests: List[str], provider: str, appResults: dict[Type[str], Type[AppResult]], run_id: str):
+    try:
+        os.environ['PULUMI_CONFIG_PASSPHRASE'] = ""
+        builder = AppBuilder(directory, provider)
 
-    config_base_path = os.path.join("apps", directory, "config", provider)
-    files: list[str] = os.listdir(config_base_path)
-    upgrade = False
-    stack: auto.Stack = None
+        config_base_path = os.path.join("apps", directory, "config", provider)
+        files: list[str] = os.listdir(config_base_path)
+        upgrade = False
+        stack: auto.Stack = None
+        pulumi_logger = PulumiLogging(run_id, directory)
 
-    for file in files:
-        path = os.path.join(config_base_path, file)
-        if not os.path.isfile(path):
-            log.debug(f'{path} is not a file. Skipping run.')
-            continue
-
-        pulumi_logger = PulumiLogging(run_id, path)
-
-            # Build the app with klotho's released version and configure the pulumi config
-<<<<<<< HEAD
-            app_built = builder.build_app(path, Builds.RELEASE)
-            log.info(f'{app_built} release is built')
-            if not app_built:
-                appResults[path] = AppResult(path, Result.COMPILATION_FAILED, [])
+        for file in files:
+            path = os.path.join(config_base_path, file)
+            if not os.path.isfile(path):
+                log.debug(f'{path} is not a file. Skipping run.')
                 continue
 
-            if stack is None:
-                stack = builder.create_pulumi_stack()
-            builder.install_npm_deps()
+            pulumi_logger.set_file_name(f'{file}.txt')
+            log.info(f'Running on path {path}')
+            if not upgrade:
+                result_key = sanitize_result_key(f'{path}-{Builds.RELEASE}')
+                appResults[result_key] = AppResult(path, Builds.RELEASE, Result.STARTED)
+                log.info(f'Building release application for path {path}')
+                # Build the app with klotho's released version and configure the pulumi config
+                stack = build_app(builder, path, appResults, upgrade, stack)
+                if stack is None:
+                    continue
 
-            deployer = AppDeployer(stack, region)
+                deployer = AppDeployer(stack, region, pulumi_logger)
+                log.info(f'Configuring and deploying app {builder.cfg.app_name}')
+                api_url: str = deployer.configiure_and_deploy(builder.cfg)
+                if api_url == "":
+                    appResults[result_key].set_result(Result.DEPLOYMENT_FAILED)
+                else:
+                    test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
+                    appResults[result_key].add_test_results(test_runner.run())
+                upgrade = True
+                
+            # Build the app with klotho's mainline version and configure the pulumi config
+            stack = build_app(builder, path, appResults, upgrade, stack)
+            result_key = sanitize_result_key(f'{path}-{Builds.MAINLINE}')
+            appResults[result_key] = AppResult(path, Builds.MAINLINE, Result.STARTED)
+            if stack is None:
+                continue
+
+            deployer = AppDeployer(stack, region, pulumi_logger)
             api_url: str = deployer.configiure_and_deploy(builder.cfg)
             if api_url == "":
-                appResults[path] = AppResult(path, Result.DEPLOYMENT_FAILED, [])
+                appResults[result_key].set_result(Result.DEPLOYMENT_FAILED)
                 continue
 
             test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
-            path_result.add_test_results(test_runner.run())
-            upgrade = True
-        
-        # Build the app with klotho's mainline version and configure the pulumi config
-        app_built = builder.build_app(path, Builds.MAINLINE)
-        log.info(f'{app_built} main is built')
-        if not app_built:
-            appResults[path] = AppResult(path, Result.COMPILATION_FAILED, [])
-            continue
-=======
-        stack = build_app(builder, path, appResults, upgrade, stack)
->>>>>>> 34ba86f (better logging)
-        if stack is None:
-            continue
-
-        deployer = AppDeployer(stack, region, pulumi_logger)
-        api_url: str = deployer.configiure_and_deploy(builder.cfg)
-        if api_url == "":
-            appResults[path] = AppResult(path, Result.DEPLOYMENT_FAILED, [])
-            continue
-
-        test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
-        path_result: AppResult = appResults[path]
-        path_result.add_test_results(test_runner.run())
-        upgrade = True
-        
-
-    for i in range(0,5):
-        try:
-            stack.destroy(on_output=print)
-            result: subprocess.CompletedProcess[bytes] = subprocess.run(["pulumi", "stack", "rm", stack.name])
-            result.check_returncode()
-        except:
-            stack.refresh()
+            appResults[result_key].add_test_results(test_runner.run())
+    except Exception as e:
+        log.error(e)
+        for i in range(0,5):
+            try:
+                log.info(f'Destroying stack {stack.name}')
+                pulumi_logger.set_file_name(f'destroy.txt')
+                stack.destroy(on_output=pulumi_logger.log)
+            except:
+                log.info(f'Refreshing stack {stack.name}')
+                stack.refresh()
+            finally:
+                log.info(f'Removing stack {stack.name}')
+                result: subprocess.CompletedProcess[bytes] = subprocess.run(["pulumi", "stack", "rm", "-s", stack.name])
+                result.check_returncode()
 
 
-def build_app(builder: AppBuilder, path: str, appResults: dict, upgrade: bool, stack: auto.Stack) -> auto.Stack:
+def build_app(builder: AppBuilder, path: str, appResults: dict[Type[str], Type[AppResult]], upgrade: bool, stack: auto.Stack) -> auto.Stack:
     build = Builds.RELEASE if not upgrade else Builds.MAINLINE
     app_built = builder.build_app(path, build)
     if not app_built:
         log.info(f'{path} {build} failed to build')
-        appResults[path] = AppResult(path, Result.COMPILATION_FAILED, [])
+        result_key = sanitize_result_key(f'{path}-{build}')
+        appResults[result_key].set_result(Result.COMPILATION_FAILED)
         return stack
     if stack is None:
         stack = builder.create_pulumi_stack()
