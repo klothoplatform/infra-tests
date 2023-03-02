@@ -26,7 +26,7 @@ class TestRunner:
             "pytest"
         ])
 
-        upgrade_marker = "not post_upgrade" if self.upgrade_path is False else ""
+        upgrade_marker = "not post_upgrade" if self.upgrade_path is False else "not pre_upgrade"
         disable_tests = f"--ignore '{self.disable_tests}'" if self.disable_tests != "" else ""
         app_marker = re.sub("[\\s-]", "_", self.app_name.lower())
         markers = app_marker
