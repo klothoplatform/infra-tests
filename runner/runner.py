@@ -75,10 +75,10 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                 if api_url == "":
                     appResults[result_key].set_result(Result.DEPLOYMENT_FAILED)
                 else:
-                    test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
+                    test_runner = TestRunner(builder.app_name, api_url, upgrade, disable_tests)
                     test_results = test_runner.run()
                     for test_result in test_results:
-                        log.info(test_result.to_string)
+                        log.info(test_result.to_string())
                     appResults[result_key].add_test_results(test_results)
                 upgrade = True
                 raise("well exit here")
@@ -96,8 +96,11 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                 appResults[result_key].set_result(Result.DEPLOYMENT_FAILED)
                 continue
 
-            test_runner = TestRunner(builder.directory, api_url, upgrade, disable_tests)
-            appResults[result_key].add_test_results(test_runner.run())
+            test_runner = TestRunner(builder.app_name, api_url, upgrade, disable_tests)
+            test_results = test_runner.run()
+            for test_result in test_results:
+                log.info(test_result.to_string())
+            appResults[result_key].add_test_results(test_results)
     except Exception as e:
         log.error(e)
         for i in range(0,5):
@@ -105,14 +108,13 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                 log.info(f'Destroying stack {stack.name}')
                 pulumi_logger.set_file_name(f'destroy.txt')
                 stack.destroy(on_output=pulumi_logger.log)
+                log.info(f'Removing stack {stack.name}')
+                result: subprocess.CompletedProcess[bytes] = subprocess.run(["pulumi", "stack", "rm", "-s", stack.name, "-y"])
+                result.check_returncode()
             except:
                 log.info(f'Refreshing stack {stack.name}')
                 stack.refresh()
-            finally:
-                log.info(f'Removing stack {stack.name}')
-                command = f'cd {builder.output_dir}; pwd; pulumi stack rm -s {stack.name}'
-                result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
-                result.check_returncode()
+
 
 
 def build_app(builder: AppBuilder, path: str, appResults: dict[Type[str], Type[AppResult]], upgrade: bool, stack: auto.Stack) -> auto.Stack:

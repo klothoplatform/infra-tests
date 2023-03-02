@@ -16,7 +16,8 @@ class Builds(Enum):
 
 class AppBuilder:
     def __init__(self, directory: str, provider: str):
-        self.app_name = f'{directory}-{shortuuid.ShortUUID().random(length=6).lower()}'
+        self.app_name = os.path.split(directory)[-1]
+        self.klotho_app_name = f'{directory}-{shortuuid.ShortUUID().random(length=6).lower()}'
         self.directory = os.path.join("apps", directory)
         self.provider = provider
         self.output_dir = os.path.join(self.directory, "compiled")
@@ -35,13 +36,13 @@ class AppBuilder:
         try:
             if build is Builds.RELEASE:
                 result: subprocess.CompletedProcess[bytes] = subprocess.run(["./klotho_release", self.directory, "--app", 
-                                                                        self.app_name, "--provider", 
+                                                                        self.klotho_app_name, "--provider", 
                                                                         self.provider, "--config", config_path,
                                                                         "--outDir", self.output_dir])
                 result.check_returncode()
             else:
                 result: subprocess.CompletedProcess[bytes] = subprocess.run(["./klotho_main", self.directory, "--app", 
-                                                                        self.app_name, "--provider", 
+                                                                        self.klotho_app_name, "--provider", 
                                                                         self.provider, "--config", config_path,
                                                                         "--outDir", self.output_dir])
                 result.check_returncode()
@@ -54,8 +55,8 @@ class AppBuilder:
 
         
     def create_pulumi_stack(self) -> auto.Stack:
-        stack = auto.create_stack(self.app_name, work_dir=self.output_dir)
-        log.info(f'Successfully created stack for {self.app_name}')
+        stack = auto.create_stack(self.klotho_app_name, work_dir=self.output_dir)
+        log.info(f'Successfully created stack for {self.klotho_app_name}')
         return stack
 
     def install_npm_deps(self):
@@ -64,7 +65,7 @@ class AppBuilder:
 
 
     def get_test_config(self) -> TestConfig:
-        cfg = TestConfig(os.path.join(self.directory, "test-config.yaml"), self.app_name)
+        cfg = TestConfig(os.path.join(self.directory, "test-config.yaml"), self.klotho_app_name)
         cfg.read_config()
         return cfg
     
