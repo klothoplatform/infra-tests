@@ -1,7 +1,7 @@
 from tests import primary_gw_url
 
 
-def primary_gw_url(path: str) -> str:
+def resolve_primary_gw_url(path: str) -> str:
     return urljoin(primary_gw_url, path)
 
 
