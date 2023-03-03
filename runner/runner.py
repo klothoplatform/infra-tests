@@ -5,11 +5,9 @@ from pulumi import automation as auto
 from app_util.builder import AppBuilder, Builds
 from app_util.deployer import AppDeployer
 from app_util.runner import AppRunner
-from test_runner import TestRunner
 import os
 from util.result import AppResult, Result, sanitize_result_key
 from util.logging import PulumiLogging, configureLoggers
-import subprocess
 import shortuuid
 import logging
 

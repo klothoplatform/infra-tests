@@ -30,7 +30,7 @@ class AppDeployer:
                 log.info(f'Deployed stack, {self.stack.name}, successfully. Got API Url: {url}')
                 return url
             except Exception as e:
-                log.error(e)
+                log.error(f'Deployment of stack, {self.stack.name}, failed.')
                 log.info(f'Refreshing stack {self.stack.name}')
                 self.stack.refresh()
         return ""
