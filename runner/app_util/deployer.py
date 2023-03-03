@@ -24,7 +24,7 @@ class AppDeployer:
             return ""
         for i in range(0,5):
             try:
-                log.info(f'Deploying stack {self.stack.name}')
+                log.info(f'Deploying stack {self.stack.name} to region {self.region}')
                 url = self.deploy_app()
                 log.info(f'Deployed stack, {self.stack.name}, successfully. Got API Url: {url}')
                 return url
