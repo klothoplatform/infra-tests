@@ -25,6 +25,7 @@ primaryRouter.get("/test/persist-fs/read-text-file", persist.testReadTextFile);
 primaryRouter.get("/test/persist-fs/read-binary-file", persist.testReadBinaryFile);
 primaryRouter.post("/test/persist-fs/write-text-file", upload.single("file"), persist.testWriteTextFile);
 primaryRouter.post("/test/persist-fs/write-binary-file",upload.single("file"), persist.testWriteBinaryFile);
+primaryRouter.delete("/test/persist-fs/delete-file", persist.testDeleteFile);
 
 primaryRouter.get("/test/persist-orm/typeorm-read-kv-entry", persist.testReadTypeOrmKvEntry);
 primaryRouter.post("/test/persist-orm/typeorm-write-kv-entry", persist.testWriteTypeOrmKvEntry);

@@ -1,5 +1,5 @@
 import {readSecret} from "../resources/persist/fs-secret";
-import {readBinary, readText, writeBinary, writeText} from "../resources/persist/fs-cloud";
+import {deleteFile, readBinary, readText, writeBinary, writeText} from "../resources/persist/fs-cloud";
 import {KV} from "../resources/persist/orm-typeorm/typeorm-model";
 import * as typeorm from "../resources/persist/orm-typeorm/typeorm-logic";
 import * as sequelize from "../resources/persist/orm-sequelize/sequelize-model"
@@ -31,6 +31,11 @@ export async function testReadBinaryFile(req, res) {
     const path = req.query.path;
     res.contentType(path);
     res.send(await readBinary(path));
+}
+
+export async function testDeleteFile(req, res) {
+    await deleteFile(req.query.path);
+    res.send("success");
 }
 
 export async function testWriteTypeOrmKvEntry(req, res) {

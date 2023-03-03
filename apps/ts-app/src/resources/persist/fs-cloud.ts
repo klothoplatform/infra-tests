@@ -35,3 +35,7 @@ export async function writeText(filepath: string, content: any) {
 export async function readText(filepath: string): Promise<string> {
     return await fs.readFile(path.join(prefix, filepath), {encoding: "utf-8"})
 }
+
+export async function deleteFile(filepath: string) {
+    await fs.rm(path.join(prefix, filepath))
+}
