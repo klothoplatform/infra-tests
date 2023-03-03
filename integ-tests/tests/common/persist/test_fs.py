@@ -54,8 +54,8 @@ def test_read_binary_file():
     response = requests.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
                             headers={"Accept": "image/jpeg"},
                             params={"path": binary_upload_path})
-
-    assert response.content == file_content
+    content_matches = response.content == file_content
+    assert content_matches
 
 
 @pytest.mark.ts_app
@@ -91,7 +91,8 @@ def test_read_binary_file_after_upgrade():
     response = requests.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
                             headers={"Accept": "image/jpeg"},
                             params={"path": fixed_binary_upload_path})
-    assert response.content == get_file_content("resources/image.jpg")
+    content_matches = response.content == get_file_content("resources/image.jpg")
+    assert content_matches
 
 
 @pytest.mark.ts_app

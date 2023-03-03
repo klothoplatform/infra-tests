@@ -7,6 +7,6 @@ import {ExecInput, ExecResult} from "./models";
  * }
  */
 
-export function invokeCrossExec(input: ExecInput): ExecResult {
+export async function invokeCrossExec(input: ExecInput): Promise<ExecResult> {
     return {id: input.id, status: 200, message: "ok"}
 }
