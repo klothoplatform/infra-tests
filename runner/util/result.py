@@ -24,11 +24,11 @@ def sanitize_result_key(key: str) -> str:
     return key.replace('/','_').replace('.','-')
 
 class AppResult:
-    def __init__(self, directory: str, build: Builds, result: Result):
+    def __init__(self, directory: str, build: Builds, result: Result, test_results: List[TestResult]):
         self.result = result
         self.build = build
         self.directory = directory
-        self.test_results = []
+        self.test_results = test_results
 
     def set_result(self, result: Result):
         self.result = result

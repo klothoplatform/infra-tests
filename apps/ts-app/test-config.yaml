@@ -6,3 +6,5 @@ default:
     sequelizedb_password: b18a39b9
     typeormdb_username: dbuser
     typeormdb_password: e407b247
+    sequelizeenvvardb_username: dbuser
+    sequelizeenvvardb_password: s987asd8

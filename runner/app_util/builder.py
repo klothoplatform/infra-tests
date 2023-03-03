@@ -32,7 +32,7 @@ class AppBuilder:
         self.cfg = self.get_test_config()
 
     def build_app(self, config_path, build: Builds) -> bool:
-        logging.log(1, f'Building application with build {build}')
+        log.info(f'Building application, {self.klotho_app_name}, with build {build} and config path {config_path}')
         try:
             if build is Builds.RELEASE:
                 result: subprocess.CompletedProcess[bytes] = subprocess.run(["./klotho_release", self.directory, "--app", 
@@ -46,12 +46,13 @@ class AppBuilder:
                                                                         self.provider, "--config", config_path,
                                                                         "--outDir", self.output_dir])
                 result.check_returncode()
-        except subprocess.CalledProcessError as e:
-            print(e)
+            log.info(f'Successfully built {build} release for path {config_path}')
+            self.install_npm_deps()
+            self.copy_secrets()
+            return True
+        except Exception as e:
+            log.error(e)
             return False
-        log.info(f'Successfully built {build} release for path {config_path}')
-        self.copy_secrets()
-        return True
 
         
     def create_pulumi_stack(self) -> auto.Stack:

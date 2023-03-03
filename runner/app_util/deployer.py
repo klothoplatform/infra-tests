@@ -7,10 +7,12 @@ import logging
 log = logging.getLogger("DeploymentRunner")
 
 class AppDeployer:
-    def __init__(self, stack: auto.Stack, region: str, pulumi_logger: PulumiLogging):
-        self.stack = stack
+    def __init__(self, region: str, pulumi_logger: PulumiLogging):
         self.region = region
         self.pulumi_logger = pulumi_logger
+
+    def set_stack(self, stack: auto.Stack):
+        self.stack = stack
 
     def configiure_and_deploy(self, cfg: TestConfig) -> str:
         self.configure_region()
@@ -18,7 +20,8 @@ class AppDeployer:
         try:
             log.info(f'Previewing stack {self.stack.name}')
             self.stack.preview(on_output=self.pulumi_logger.log)
-        except:
+        except Exception as e:
+            log.error(e)
             return ""
         for i in range(0,5):
             try:
@@ -48,3 +51,19 @@ class AppDeployer:
     def configure_pulumi_app(self, cfg: TestConfig):
         for key in cfg.pulumi_config:
             self.stack.set_config(f'{cfg.app_name}:{key}', auto.ConfigValue(cfg.pulumi_config[key]))
+
+    def destroy_and_remove_stack(self, output_dir: str):
+         for i in range(0,5):
+            try:
+                log.info(f'Destroying stack {self.stack.name}')
+                self.pulumi_logger.set_file_name(f'destroy.txt')
+                self.stack.destroy(on_output=self.pulumi_logger.log)
+                log.info(f'Removing stack {self.stack.name}')
+                command = f'cd {output_dir}; pulumi stack rm -s {self.stack.name} -y'
+                result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
+                log.info(result.stdout)
+                result.check_returncode()
+            except Exception as e:
+                log.error(e)
+                log.info(f'Refreshing stack {self.stack.name}')
+                self.stack.refresh()
