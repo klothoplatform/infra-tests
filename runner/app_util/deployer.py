@@ -63,6 +63,7 @@ class AppDeployer:
                 result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
                 log.info(result.stdout)
                 result.check_returncode()
+                return
             except Exception as e:
                 log.error(e)
                 log.info(f'Refreshing stack {self.stack.name}')

@@ -6,6 +6,14 @@ from test_runner import TestRunner
 import logging
 from pulumi import automation as auto
 from typing import Tuple, List
+from urllib.parse import urlparse, urlunparse
+
+import re
+
+def formaturl(url):
+    if not re.match('(?:http|ftp|https)://', url):
+        return 'http://{}'.format(url)
+    return url
 
 log = logging.getLogger("DeploymentRunner")
 
@@ -28,14 +36,17 @@ class AppRunner:
         if stack is None:
             stack = builder.create_pulumi_stack()
             deployer.set_stack(stack)
-            
+
         log.info(f'Configuring and deploying app {builder.cfg.app_name}')
 
         api_url: str = deployer.configiure_and_deploy(builder.cfg)
         if api_url == "":
             return [stack, Result.COMPILATION_FAILED, None]
 
-        test_runner = TestRunner(builder.app_name, api_url, upgrade, [])
+        url = formaturl(api_url)
+        parsed_url = urlparse(url, 'https')
+
+        test_runner = TestRunner(builder.app_name, urlunparse([parsed_url.scheme,parsed_url.netloc,'','','','']), parsed_url.path, upgrade, [])
         test_results = test_runner.run()
         final_result = Result.SUCCESS
         for test_result in test_results:
