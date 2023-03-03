@@ -47,6 +47,6 @@ class AppResult:
             self.Result = Result.SUCCESS
 
     def to_string(self):
-        string = f'directory: {self.directory}, build: {self.buid}\n\tstep: {self.step}, result: {self.result}\n'
+        string = f'directory: {self.directory}, build: {self.build}\n\tstep: {self.step}, result: {self.result}\n'
         for result in self.test_results:
             string += f'{result.to_string}\n'

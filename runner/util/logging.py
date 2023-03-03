@@ -6,11 +6,10 @@ log_directory = "logs"
 pulumi_log_directory = "pulumi"
 klotho_log_directory = "compilations"
 
-def configureLoggers(run_id: str):
+def configure_deployment_logger(run_id: str):
     log_path = os.path.join(log_directory, run_id)
     if not os.path.exists(log_path):
         os.makedirs(log_path)
-
     deployment_log = logging.getLogger("DeploymentRunner")
     deployment_log.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)
@@ -23,6 +22,10 @@ def configureLoggers(run_id: str):
     deployment_log.addHandler(fileHandler)
     deployment_log.propagate = False
 
+def configure_test_logger(run_id: str, app: str, config: str):
+    app_log_path = os.path.join(log_directory, run_id, app, "test_output")
+    if not os.path.exists(app_log_path):
+        os.makedirs(app_log_path)
     test_log = logging.getLogger("TestRunner")
     test_log.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)
@@ -30,7 +33,7 @@ def configureLoggers(run_id: str):
     formatter = logging.Formatter('%(asctime)s - %(name)s - {%(pathname)s:%(lineno)d} - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)
     test_log.addHandler(handler)  
-    fileHandler = logging.FileHandler(os.path.join(log_path, "test_output.txt"))
+    fileHandler = logging.FileHandler(os.path.join(app_log_path, config))
     fileHandler.setFormatter(formatter)
     test_log.addHandler(fileHandler)
     test_log.propagate = False
@@ -42,17 +45,17 @@ class PulumiLogging:
     key_words = ["created", "updated", "failed", "deleted", "Previewing update", "View Live"]
 
     def __init__(self, run_id: str, app: str):
-        self.path = os.path.join(log_directory, run_id, pulumi_log_directory, app)
-        if not os.path.exists(os.path.dirname(self.path)):
-            os.makedirs(os.path.dirname(self.path))
+        self.base_path = os.path.join(log_directory, run_id, app, pulumi_log_directory)
+        if not os.path.exists(self.base_path):
+            os.makedirs(self.base_path)
 
     def log(self, msg: str):
         for word in self.key_words:
             if word in msg:
                 print(msg)
 
-        with open(self.path, "a") as log_file:
+        with open(self.current_path, "a") as log_file:
             log_file.write(msg+"\n")
 
     def set_file_name(self, file_name: str):
-        self.path = os.path.join(os.path.dirname(self.path), file_name)
+        self.current_path = os.path.join(self.base_path, file_name)

@@ -7,7 +7,7 @@ from app_util.deployer import AppDeployer
 from app_util.runner import AppRunner
 import os
 from util.result import AppResult, Result, sanitize_result_key
-from util.logging import PulumiLogging, configureLoggers
+from util.logging import PulumiLogging, configure_deployment_logger, configure_test_logger
 import shortuuid
 import logging
 
@@ -21,7 +21,7 @@ log = logging.getLogger("DeploymentRunner")
 @click.option('--provider', type=str, required=True, help='The provider to test')
 def run(directories, region, disable_tests, provider):
     run_id = shortuuid.ShortUUID().random(length=8)
-    configureLoggers(run_id)
+    configure_deployment_logger(run_id)
     result_code = 0
 
     log.info(f'Starting run with id: {run_id}')
@@ -43,9 +43,9 @@ def run(directories, region, disable_tests, provider):
 
 def run_single(directory: str, region: str, disable_tests: List[str], provider: str, appResults: dict[Type[str], Type[AppResult]], run_id: str):
     try:
-        pulumi_logger = PulumiLogging(run_id, directory)
         os.environ['PULUMI_CONFIG_PASSPHRASE'] = ""
         builder = AppBuilder(directory, provider)
+        pulumi_logger = PulumiLogging(run_id, builder.app_name)
         deployer = AppDeployer(region, pulumi_logger)
         app_runner = AppRunner(builder, deployer)
 
@@ -56,14 +56,16 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
         stack: auto.Stack = None
         step = 1
 
+
         for file in files:
             path = os.path.join(config_base_path, file)
             if not os.path.isfile(path):
                 log.debug(f'{path} is not a file. Skipping run.')
                 continue
 
-
-            pulumi_logger.set_file_name(f'{file}.txt')
+            file_name = f'{os.path.splitext(file)[0]}.txt'
+            configure_test_logger(run_id, builder.app_name, file_name)
+            pulumi_logger.set_file_name(file_name)
             log.info(f'Running on path {path}')
             if not upgrade:
                 result_key = sanitize_result_key(f'{path}-{Builds.RELEASE}')

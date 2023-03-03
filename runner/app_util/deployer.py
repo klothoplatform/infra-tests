@@ -21,7 +21,6 @@ class AppDeployer:
             log.info(f'Previewing stack {self.stack.name}')
             self.stack.preview(on_output=self.pulumi_logger.log)
         except Exception as e:
-            log.error(e)
             return ""
         for i in range(0,5):
             try:
