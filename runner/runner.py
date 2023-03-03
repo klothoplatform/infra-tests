@@ -56,6 +56,7 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
 
         upgrade = False
         stack: auto.Stack = None
+        step = 1
 
         for file in files:
             path = os.path.join(config_base_path, file)
@@ -63,24 +64,33 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                 log.debug(f'{path} is not a file. Skipping run.')
                 continue
 
+
             pulumi_logger.set_file_name(f'{file}.txt')
             log.info(f'Running on path {path}')
             if not upgrade:
                 result_key = sanitize_result_key(f'{path}-{Builds.RELEASE}')
                 stack, result, test_results = app_runner.deploy_and_test(path, upgrade, stack)
-                appResults[result_key] = AppResult(path, Builds.RELEASE, result, test_results)
+                appResults[result_key] = AppResult(path, Builds.RELEASE, result, test_results, step)
+                step += 1
                 upgrade = True
                 
             # Build the app with klotho's mainline version and configure the pulumi config
             result_key = sanitize_result_key(f'{path}-{Builds.MAINLINE}')
             stack, result, test_results = app_runner.deploy_and_test(path, upgrade, stack)
-            appResults[result_key] = AppResult(path, Builds.MAINLINE, result, test_results)
+            appResults[result_key] = AppResult(path, Builds.MAINLINE, result, test_results, step)
+            step += 1
 
     except Exception as e:
         log.error(e)
         log.error(traceback.print_exc())
     finally:
-        deployer.destroy_and_remove_stack(builder.output_dir)
+        deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
+        result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
+        result_key = sanitize_result_key(f'{stack.name}-destroy')
+        appResults[result_key] = AppResult(path, None, result, test_results, step)
+
+            
+
 
 if __name__ == '__main__':
     run()

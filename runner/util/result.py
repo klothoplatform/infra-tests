@@ -9,6 +9,7 @@ class Result(Enum):
     TESTS_FAILED = "TESTS_FAILED"
     COMPILATION_FAILED = "COMPILATION_FAILED"
     DEPLOYMENT_FAILED = "DEPLOYMENT_FAILED"
+    DESTROY_FAILED = "DESTROY_FAILED"
 
 class TestResult:
     def __init__(self, name: str, result: Result, reason: str):
@@ -24,11 +25,12 @@ def sanitize_result_key(key: str) -> str:
     return key.replace('/','_').replace('.','-')
 
 class AppResult:
-    def __init__(self, directory: str, build: Builds, result: Result, test_results: List[TestResult]):
+    def __init__(self, directory: str, build: Builds, result: Result, test_results: List[TestResult], step: int):
         self.result = result
         self.build = build
         self.directory = directory
         self.test_results = test_results
+        self.step = step
 
     def set_result(self, result: Result):
         self.result = result
@@ -45,6 +47,6 @@ class AppResult:
             self.Result = Result.SUCCESS
 
     def to_string(self):
-        string = f'directory: {self.directory}, build: {self.buid}\n\tresult: {self.result}\n'
+        string = f'directory: {self.directory}, build: {self.buid}\n\tstep: {self.step}, result: {self.result}\n'
         for result in self.test_results:
             string += f'{result.to_string}\n'

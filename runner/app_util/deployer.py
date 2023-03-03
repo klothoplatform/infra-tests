@@ -52,7 +52,7 @@ class AppDeployer:
         for key in cfg.pulumi_config:
             self.stack.set_config(f'{cfg.app_name}:{key}', auto.ConfigValue(cfg.pulumi_config[key]))
 
-    def destroy_and_remove_stack(self, output_dir: str):
+    def destroy_and_remove_stack(self, output_dir: str) -> bool:
          for i in range(0,5):
             try:
                 log.info(f'Destroying stack {self.stack.name}')
@@ -63,7 +63,10 @@ class AppDeployer:
                 result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
                 log.info(result.stdout)
                 result.check_returncode()
+                return True
             except Exception as e:
                 log.error(e)
                 log.info(f'Refreshing stack {self.stack.name}')
                 self.stack.refresh()
+            finally:
+                return False
