@@ -1,0 +1,104 @@
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: The provider to run on
+        required: false
+        type: string
+        default: aws
+      directories:
+        description: comma-delimited list of dirs within the apps directory to run (if empty, runs all)
+        required: false
+        type: string
+      region:
+        description: the region to deploy sample apps to
+        required: false
+        type: string
+        default: eu-west-1 # Because they contain memoryDB we cannot target us-east-1 or us-west-2
+  workflow_call:
+    # same inputs as workflow_dispatch
+    inputs:
+      provider:
+        description: The provider to run on
+        required: false
+        type: string
+        default: aws
+      directories:
+        description: comma-delimited list of dirs within the apps directory to run (if empty, runs all)
+        required: false
+        type: string
+      region:
+        description: the region to deploy sample apps to
+        required: false
+        type: string
+        default: eu-west-1
+    
+name: run integration tests
+jobs:
+  build-klotho:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout klotho
+        uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.19.6'
+      - name: pre-build
+        if: ${{ inputs.pre-build-script }}
+        run: ${{ inputs.pre-build-script }}
+      - name: build
+        working-directory: ${{ matrix.app_to_test }}
+        run: |
+          go generate ./...
+          go build ./cmd/klotho -o klotho_main
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: klotho_main
+          path: klotho_main
+          retention-days: 1
+  download-klotho-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Public Klotho (old version)
+        run: |
+          curl -fsSL http://srv.klo.dev/update/latest/linux/amd64 -o "$RUNNER_TEMP/klotho-release"
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: klotho_release
+          path: klotho_release
+  run-tests:
+    runs-on: ubuntu-latest
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' 
+      - name: download klotho release
+        uses: actions/download-artifact@v3
+        with:
+          name: klotho_release
+          path: ${{ runner.temp }}
+      - name: install klotho release
+        run: |
+          chmod +x $RUNNER_TEMP/klotho _release
+      - name: download klotho main
+        uses: actions/download-artifact@v3
+        with:
+          name: klotho_main
+          path: ${{ runner.temp }}
+      - name: install klotho main
+        run: |
+          chmod +x $RUNNER_TEMP/klotho _main
+      - uses: actions/checkout@v3
+      - name: run tests
+        run: |
+          python 
+        env: runner/runner.py --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}
+          KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: logs/
