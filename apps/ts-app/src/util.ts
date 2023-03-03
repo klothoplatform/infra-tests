@@ -1,2 +1,2 @@
 
-export const isCloudEnv = process.env["CLOUDCC"] == "true";
+export const isCloudEnv = process.env["CLOUDCC_NAMESPACE"] != null;
