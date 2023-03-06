@@ -10,28 +10,12 @@ on:
         description: comma-delimited list of dirs within the apps directory to run (if empty, runs all)
         required: false
         type: string
+        default: ts-app
       region:
         description: the region to deploy sample apps to
         required: false
         type: string
         default: eu-west-1 # Because they contain memoryDB we cannot target us-east-1 or us-west-2
-  workflow_call:
-    # same inputs as workflow_dispatch
-    inputs:
-      provider:
-        description: The provider to run on
-        required: false
-        type: string
-        default: aws
-      directories:
-        description: comma-delimited list of dirs within the apps directory to run (if empty, runs all)
-        required: false
-        type: string
-      region:
-        description: the region to deploy sample apps to
-        required: false
-        type: string
-        default: eu-west-1
     
 name: run integration tests
 jobs:
@@ -43,11 +27,7 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: '1.19.6'
-      - name: pre-build
-        if: ${{ inputs.pre-build-script }}
-        run: ${{ inputs.pre-build-script }}
       - name: build
-        working-directory: ${{ matrix.app_to_test }}
         run: |
           go generate ./...
           go build ./cmd/klotho -o klotho_main
@@ -56,23 +36,28 @@ jobs:
         with:
           name: klotho_main
           path: klotho_main
-          retention-days: 1
+          retention-days: 30
   download-klotho-release:
     runs-on: ubuntu-latest
     steps:
       - name: Install Public Klotho (old version)
         run: |
-          curl -fsSL http://srv.klo.dev/update/latest/linux/amd64 -o "$RUNNER_TEMP/klotho-release"
+          curl -fsSL http://srv.klo.dev/update/latest/linux/amd64 -o "klotho-release"
       - name: upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: klotho_release
           path: klotho_release
+          retention-days: 30
   run-tests:
     runs-on: ubuntu-latest
       - uses: actions/setup-python@v4
         with:
           python-version: '3.10' 
+          cache: 'pip' # caching pip dependencies
+      - name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+      - run: pipenv install
       - name: download klotho release
         uses: actions/download-artifact@v3
         with:
@@ -80,7 +65,7 @@ jobs:
           path: ${{ runner.temp }}
       - name: install klotho release
         run: |
-          chmod +x $RUNNER_TEMP/klotho _release
+          chmod +x $RUNNER_TEMP/klotho_release
       - name: download klotho main
         uses: actions/download-artifact@v3
         with:
@@ -88,7 +73,7 @@ jobs:
           path: ${{ runner.temp }}
       - name: install klotho main
         run: |
-          chmod +x $RUNNER_TEMP/klotho _main
+          chmod +x $RUNNER_TEMP/klotho_main
       - uses: actions/checkout@v3
       - name: run tests
         run: |
@@ -102,3 +87,4 @@ jobs:
         with:
           name: logs
           path: logs/
+          retention-days: 30
