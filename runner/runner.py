@@ -36,7 +36,7 @@ def run(directories, region, disable_tests, provider):
         result: AppResult = appResults[key]
         if result.result != Result.SUCCESS:
             result_code = 1
-        log.info(result.to_string())
+        log.info(f'Result for key, {key}: {result.to_string()}')
 
     exit(result_code)
 
