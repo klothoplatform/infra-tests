@@ -9,11 +9,12 @@ log = logging.getLogger("TestRunner")
 
 
 class TestRunner:
-    def __init__(self, app_name, api_endpoint, upgrade_path, disable_tests):
+    def __init__(self, app_name, api_endpoint, upgrade_path, disable_tests, provider="aws"):
         self.app_name: str = app_name
         self.api_endpoint: str = api_endpoint
         self.upgrade_path: bool = upgrade_path
         self.disable_tests: str = disable_tests if disable_tests is not None else ""
+        self.provider = "unknown" if provider is None else provider
 
     def run(self) -> list[TestResult]:
         log.info(f'Running tests for {self.app_name} and is upgrade={self.upgrade_path}')
@@ -22,6 +23,8 @@ class TestRunner:
         command = " ".join([
             "cd integ-tests;",
             f'API_URL="{self.api_endpoint}"',
+            f'APP_NAME="{self.app_name}"',
+            f'PROVIDER="{self.provider}"',
             f'PYTHONPATH="{os.path.abspath(os.path.join(os.curdir, "integ-tests"))}"',
             "pytest"
         ])
