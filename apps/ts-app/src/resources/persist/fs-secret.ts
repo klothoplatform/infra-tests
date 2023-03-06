@@ -1,11 +1,12 @@
 /**
  * @klotho::persist {
  *   id = "fs-secret"
- *   type ="secret"
+ *   secret = true
  * }
  */
 import fs = require("fs/promises");
 
-export async function readSecret(path: string, encoding: string| null = null): Promise<Buffer | string> {
-    return await fs.readFile(path, {encoding: "utf-8"})
+export async function readSecretDotTxt(encoding: BufferEncoding| undefined = undefined): Promise<Buffer | string> {
+    const secret = await fs.readFile("secrets/secret.txt");
+    return encoding ? secret.toString(encoding) : secret;
 }

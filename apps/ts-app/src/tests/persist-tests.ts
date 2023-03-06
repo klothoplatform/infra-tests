@@ -1,4 +1,3 @@
-import {readSecret} from "../resources/persist/fs-secret";
 import {deleteFile, readBinary, readText, writeBinary, writeText} from "../resources/persist/fs-cloud";
 import {KV} from "../resources/persist/orm-typeorm/typeorm-model";
 import * as typeorm from "../resources/persist/orm-typeorm/typeorm-logic";
@@ -6,28 +5,39 @@ import * as sequelize from "../resources/persist/orm-sequelize/sequelize-model"
 import * as sequelizeEnvVar from "../resources/persist/orm-sequelize-envvar/sequelize-envvar-model"
 import * as kvMap from "../resources/persist/kv-map"
 import {Event} from "../resources/pubsub/models";
+import {readSecretDotTxt} from "../resources/persist/fs-secret";
 
 export async function testReadTextSecret(req, res) {
-    res.send(await readSecret(req.query.name, "utf-8"));
+    res.send(await readSecretDotTxt("utf-8"));
 }
 
 export async function testReadBinarySecret(req, res) {
-    res.send(await readSecret(req.query.name));
+    res.send((await readSecretDotTxt()).toString());
 }
 
 export async function testWriteTextFile(req, res) {
-    await writeText(req.query.path, req.file.buffer);
+    await writeText(req.query.path, req.file.buffer, true);
     res.send("success");
+}
+
+export async function testWriteFilePublic(req, res) {
+    res.json({url: await writeText(req.query.path, req.file.buffer)});
 }
 
 export async function testReadTextFile(req, res) {
     res.send(await readText(req.query.path));
 }
 
-export async function testWriteBinaryFile(req, res) {
+export async function testWriteBinaryFileDirect(req, res) {
+    await writeBinary(req.query.path, req.body);
+    res.send("success");
+}
+
+export async function testWriteBinaryFileMultipart(req, res) {
     await writeBinary(req.query.path, req.file.buffer);
     res.send("success");
 }
+
 
 export async function testReadBinaryFile(req, res) {
     const path = req.query.path;
