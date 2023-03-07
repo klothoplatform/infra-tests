@@ -18,39 +18,37 @@ class AppRunner:
         self.deployer = deployer
 
     def deploy_and_test(self, path: str, upgrade: bool, stack) -> Tuple[auto.Stack, Result, List[TestResult]]:
-        return [None, Result.COMPILATION_FAILED, None]
+        builder = self.builder
+        deployer = self.deployer
+        build = Builds.RELEASE if not upgrade else Builds.MAINLINE
 
-        # builder = self.builder
-        # deployer = self.deployer
-        # build = Builds.RELEASE if not upgrade else Builds.MAINLINE
+        log.info(f'Building release application for path {path}')
+        # Build the app with klotho's released version and configure the pulumi config
+        app_built = builder.build_app(path, build)
+        if not app_built:
+            return [None, Result.COMPILATION_FAILED, None]
 
-        # log.info(f'Building release application for path {path}')
-        # # Build the app with klotho's released version and configure the pulumi config
-        # app_built = builder.build_app(path, build)
-        # if not app_built:
-        #     return [None, Result.COMPILATION_FAILED, None]
+        if stack is None:
+            stack = builder.create_pulumi_stack()
+            deployer.set_stack(stack)
 
-        # if stack is None:
-        #     stack = builder.create_pulumi_stack()
-        #     deployer.set_stack(stack)
+        log.info(f'Configuring and deploying app {builder.cfg.app_name}')
 
-        # log.info(f'Configuring and deploying app {builder.cfg.app_name}')
+        api_url: str = deployer.configiure_and_deploy(builder.cfg)
+        if api_url == "":
+            return [stack, Result.COMPILATION_FAILED, None]
 
-        # api_url: str = deployer.configiure_and_deploy(builder.cfg)
-        # if api_url == "":
-        #     return [stack, Result.COMPILATION_FAILED, None]
+        url = format_url(api_url)
 
-        # url = format_url(api_url)
+        test_runner = TestRunner(builder.app_name, url, upgrade, [])
+        test_results = test_runner.run()
+        final_result = Result.SUCCESS
+        for test_result in test_results:
+            log.info(f'Test result for {builder.klotho_app_name}: {test_result.to_string()}')
+            if test_result.result != Result.SUCCESS:
+                final_result = Result.TESTS_FAILED
 
-        # test_runner = TestRunner(builder.app_name, url, upgrade, [])
-        # test_results = test_runner.run()
-        # final_result = Result.SUCCESS
-        # for test_result in test_results:
-        #     log.info(f'Test result for {builder.klotho_app_name}: {test_result.to_string()}')
-        #     if test_result.result != Result.SUCCESS:
-        #         final_result = Result.TESTS_FAILED
-
-        # return [stack, final_result, test_results]
+        return [stack, final_result, test_results]
 
 
 def format_url(url):
