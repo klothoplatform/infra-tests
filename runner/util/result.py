@@ -17,7 +17,7 @@ class TestResult:
         self.result = result
         self.reason = reason
 
-    def to_string(self):
+    def to_string(self) -> str:
         return f'name: {self.name}\n\tresult: {self.result}\n\reason: {self.reason}'
 
 
@@ -46,8 +46,9 @@ class AppResult:
         if self.result is Result.STARTED and not did_any_test_fail:
             self.Result = Result.SUCCESS
 
-    def to_string(self):
+    def to_string(self) -> str:
         string = f'directory: {self.directory}, build: {self.build}\n\tstep: {self.step}, result: {self.result}\n'
         if self.test_results is not None:
             for result in self.test_results:
                 string += f'{result.to_string}\n'
+        return string
