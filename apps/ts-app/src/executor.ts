@@ -15,6 +15,7 @@ import {testPubSubEvent} from "./tests/pubsub-tests";
 const upload = multer({storage: multer.memoryStorage()})
 
 import * as bodyParser from "body-parser";
+import {subscribeToEvent1} from "./resources/pubsub/events";
 
 export const primaryRouter = express.Router();
 
@@ -61,3 +62,5 @@ export async function testExecuteCrossExecTasks(req, res) {
         await task3({id: "task-3"})
     ]));
 }
+
+subscribeToEvent1();

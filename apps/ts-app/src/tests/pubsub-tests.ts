@@ -1,10 +1,11 @@
 import {pubsubEmitter} from "../resources/pubsub/emitter";
 import {Event} from "../resources/pubsub/models";
-import {subscribeToEvent2} from "../resources/pubsub/event-2-subscriber";
+import {respondWithEventTwo} from "../resources/pubsub/events";
 
-export function testPubSubEvent(req, res) {
-    subscribeToEvent2(res);
+
+
+export async function testPubSubEvent(req, res) {
+    respondWithEventTwo(res)
     pubsubEmitter.emit("event-1", req.body as Event);
-
 }
 
