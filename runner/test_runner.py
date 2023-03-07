@@ -34,6 +34,7 @@ class TestRunner:
         app_marker = re.sub("[\\s-]", "_", self.app_name.lower())
         markers = app_marker
         markers = add_marker_subexpression(markers, upgrade_marker)
+        log.info(f'Running with markers {markers}')
         args = [command, "-m", f'"{markers}"', disable_tests]
         print(" ".join(args))
         result: subprocess.CompletedProcess[bytes] = subprocess.run(args, capture_output=True, shell=True, text=True)
@@ -42,6 +43,11 @@ class TestRunner:
         out = str(result.stdout)
         err = str(result.stderr)
 
+        if len(out) > 0:
+            log.info(out)
+        if len(err) > 0:
+            log.error(err)
+        
         if result.returncode == 0:
             status = Result.SUCCESS
         elif result.returncode == 1 and out.endswith("======"):
