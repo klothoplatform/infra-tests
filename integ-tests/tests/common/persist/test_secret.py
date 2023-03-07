@@ -12,6 +12,7 @@ def test_read_text_secret():
     assert response.text == "secret"
 
 
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
