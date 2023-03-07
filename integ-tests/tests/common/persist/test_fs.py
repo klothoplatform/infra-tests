@@ -1,11 +1,10 @@
-import os
 import uuid
 
 import pytest
 import requests
 
 from tests import app_name, provider
-from tests.util import resolve_primary_gw_url
+from tests.util import resolve_primary_gw_url, get_file_content
 
 text_upload_path = f"{str(uuid.uuid4())}.txt"
 binary_upload_path = f"images/{str(uuid.uuid4())}.jpg"
@@ -56,7 +55,7 @@ def test_write_read_public_file():
     assert response.text == file_content
 
 
-@pytest.mark.xfail(bool=app_name == "ts-app" and provider == "aws",
+@pytest.mark.xfail(condition=app_name == "ts-app" and provider == "aws",
                    reason="multipart mime types are not currently treated as binary content in the AWS API gateway")
 @pytest.mark.ts_app
 @pytest.mark.go_app
@@ -90,10 +89,6 @@ def test_write_read_binary_file_direct():
     response = requests.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
                             headers={"Accept": "image/jpeg"},
                             params={"path": binary_upload_path})
-
-    with open("image.jpeg", "wb") as f:
-        f.write(response.content)
-
     content_matches = response.content == file_content
     assert content_matches
 
@@ -157,8 +152,3 @@ def test_delete_files():
     response = requests.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
                                params={"path": fixed_binary_upload_path})
     assert response.status_code == 200
-
-
-def get_file_content(path):
-    with open(path, 'rb') as file:
-        return file.read()

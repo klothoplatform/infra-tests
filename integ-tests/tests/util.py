@@ -15,3 +15,8 @@ def urljoin(*args: str):
     if args[len(args) - 1].endswith("/"):
         joined += "/"
     return joined
+
+
+def get_file_content(path):
+    with open(path, 'rb') as file:
+        return file.read()
