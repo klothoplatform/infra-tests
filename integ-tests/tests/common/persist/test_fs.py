@@ -1,9 +1,8 @@
 import uuid
 
 import pytest
-import requests
 
-from tests import app_name, provider
+from tests import app_name, provider, session
 from tests.util import resolve_primary_gw_url, get_file_content
 
 text_upload_path = f"{str(uuid.uuid4())}.txt"
@@ -24,12 +23,12 @@ def test_write_read_text_file():
     file_content = file.read().decode("utf-8")
     file.seek(0)
 
-    response = requests.post(resolve_primary_gw_url("test/persist-fs/write-text-file"),
+    response = session.post(resolve_primary_gw_url("test/persist-fs/write-text-file"),
                              files={'file': file},
                              params={"path": text_upload_path})
     assert response.status_code == 200
     print(len(response.text))
-    response = requests.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
+    response = session.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
                             params={"path": text_upload_path})
     print(response.text)
     assert response.status_code == 200
@@ -43,14 +42,14 @@ def test_write_read_public_file():
     file_content = file.read().decode("utf-8")
     file.seek(0)
 
-    response = requests.post(resolve_primary_gw_url("test/persist-fs/write-file-public"),
+    response = session.post(resolve_primary_gw_url("test/persist-fs/write-file-public"),
                              files={'file': file},
                              params={"path": text_upload_path})
     assert response.status_code == 200
     url = response.json()["url"]
     assert len(url) > 0
 
-    response = requests.get(url)
+    response = session.get(url)
     assert response.status_code == 200
     assert response.text == file_content
 
@@ -62,13 +61,13 @@ def test_write_read_public_file():
 @pytest.mark.common
 def test_write_binary_file_multipart():
     file = open(binary_resource_path, 'rb')
-    response = requests.post(resolve_primary_gw_url("test/persist-fs/write-binary-file-multipart"),
+    response = session.post(resolve_primary_gw_url("test/persist-fs/write-binary-file-multipart"),
                              files={'file': file},
                              params={"path": binary_upload_path})
     assert response.status_code == 200
 
     file_content = get_file_content(binary_resource_path)
-    response = requests.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
+    response = session.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
                             headers={"Accept": "image/jpeg"},
                             params={"path": binary_upload_path})
     content_matches = response.content == file_content
@@ -80,13 +79,13 @@ def test_write_binary_file_multipart():
 @pytest.mark.common
 def test_write_read_binary_file_direct():
     file_content = get_file_content(binary_resource_path)
-    response = requests.post(resolve_primary_gw_url("test/persist-fs/write-binary-file-direct"),
+    response = session.post(resolve_primary_gw_url("test/persist-fs/write-binary-file-direct"),
                              data=file_content,
                              headers={"Content-Type": "application/octet-stream"},
                              params={"path": binary_upload_path})
     assert response.status_code == 200
 
-    response = requests.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
+    response = session.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
                             headers={"Accept": "image/jpeg"},
                             params={"path": binary_upload_path})
     content_matches = response.content == file_content
@@ -100,13 +99,13 @@ def test_write_read_binary_file_direct():
 def test_write_files_before_upgrade():
     text_file = open('resources/plaintext.txt', 'rb')
     path = f"{str(uuid.uuid4())}.txt"
-    response = requests.post(resolve_primary_gw_url("test/persist-fs/write-text-file"),
+    response = session.post(resolve_primary_gw_url("test/persist-fs/write-text-file"),
                              files={'file': text_file},
                              params={"path": fixed_text_upload_path})
     assert response.status_code == 200
 
     binary_file = open(binary_resource_path, 'rb')
-    response = requests.post(resolve_primary_gw_url("test/persist-fs/write-binary-file"),
+    response = session.post(resolve_primary_gw_url("test/persist-fs/write-binary-file-multipart"),
                              files={'file': binary_file},
                              params={"path": fixed_binary_upload_path})
     assert response.status_code == 200
@@ -117,7 +116,7 @@ def test_write_files_before_upgrade():
 @pytest.mark.common
 @pytest.mark.pre_upgrade
 def test_read_text_file_after_upgrade():
-    response = requests.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
+    response = session.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
                             params={"path": fixed_text_upload_path})
     assert response.text == get_file_content("resources/plaintext.txt").decode("utf-8")
 
@@ -127,7 +126,7 @@ def test_read_text_file_after_upgrade():
 @pytest.mark.common
 @pytest.mark.post_upgrade
 def test_read_binary_file_after_upgrade():
-    response = requests.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
+    response = session.get(resolve_primary_gw_url("test/persist-fs/read-binary-file"),
                             headers={"Accept": "image/jpeg"},
                             params={"path": fixed_binary_upload_path})
     content_matches = response.content == get_file_content("resources/image.jpg")
@@ -138,17 +137,17 @@ def test_read_binary_file_after_upgrade():
 @pytest.mark.go_app
 @pytest.mark.common
 def test_delete_files():
-    response = requests.delete(resolve_primary_gw_url("test/persist-fs/delete-file"), params={"path": text_upload_path})
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"), params={"path": text_upload_path})
     assert response.status_code == 200
 
-    response = requests.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
                                params={"path": binary_upload_path})
     assert response.status_code == 200
 
-    response = requests.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
                                params={"path": fixed_text_upload_path})
     assert response.status_code == 200
 
-    response = requests.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
                                params={"path": fixed_binary_upload_path})
     assert response.status_code == 200
