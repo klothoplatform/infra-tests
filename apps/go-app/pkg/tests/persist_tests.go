@@ -16,7 +16,7 @@ func TestReadTextSecret() http.HandlerFunc {
 
 func TestReadBinarySecret() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		content, code := persist.ReadSecretDotTxt(r.Context(), "[]byte")
+		content, code := persist.ReadSecretDotTxt(r.Context(), "bytes")
 		w.WriteHeader(code)
 		w.Write(content)
 	}
@@ -34,7 +34,7 @@ func TestWriteTextFile() http.HandlerFunc {
 	}
 }
 
-func testWriteBinaryFileDirect() http.HandlerFunc {
+func TestWriteBinaryFileDirect() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		content, code := persist.WriteFromBody(r)
 		if code == 200 {
@@ -86,5 +86,18 @@ func TestDeleteFile() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		code := persist.DeleteFile(r)
 		w.WriteHeader(code)
+	}
+}
+
+func TestReadOrmEnvVarKvEntry() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		code := persist.ReadOrmEnvVarKvEntry(r)
+		w.WriteHeader(code)
+	}
+}
+
+func TestWriteOrmEnvVarKvEntry() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		persist.WriteOrmEnvVarKvEntry(r, w)
 	}
 }

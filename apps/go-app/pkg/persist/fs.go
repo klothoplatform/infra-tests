@@ -5,20 +5,18 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
 
-	"github.com/go-chi/chi/v5"
 	"gocloud.dev/blob"
 	_ "gocloud.dev/blob/fileblob"
 )
 
 func initializeBucket() *blob.Bucket {
-	path, err := filepath.Abs(".")
+	path, err := filepath.Abs("./files")
 	if err != nil {
-		log.Fatal("failed to get bucket")
+		log.Fatal(err.Error())
 	}
 	// Create a file-based bucket.
 	/**
@@ -28,13 +26,13 @@ func initializeBucket() *blob.Bucket {
 	 */
 	bucket, err := blob.OpenBucket(context.Background(), fmt.Sprintf("file://%s", path))
 	if err != nil {
-		log.Fatal("failed to get bucket")
+		log.Fatal(err.Error())
 	}
 	return bucket
 }
 
 func WriteFromFile(req *http.Request) ([]byte, int) {
-	path := chi.URLParam(req, "path")
+	path := req.URL.Query().Get("path")
 	bucket := initializeBucket()
 	defer bucket.Close()
 	w, err := bucket.NewWriter(req.Context(), path, nil)
@@ -42,60 +40,63 @@ func WriteFromFile(req *http.Request) ([]byte, int) {
 		return []byte(err.Error()), http.StatusInternalServerError
 	}
 	content := receiveFile(req)
-	_, writeErr := fmt.Fprintln(w, content)
-	closeErr := w.Close()
+	_, writeErr := fmt.Fprint(w, content)
 	if writeErr != nil {
-		return []byte(err.Error()), http.StatusInternalServerError
+		return []byte(writeErr.Error()), http.StatusInternalServerError
 	}
+	closeErr := w.Close()
 	if closeErr != nil {
-		return []byte(err.Error()), http.StatusInternalServerError
+		return []byte(closeErr.Error()), http.StatusInternalServerError
 
 	}
 	return []byte("success"), http.StatusOK
 }
 
 func WriteFromBody(req *http.Request) ([]byte, int) {
-	path := chi.URLParam(req, "path")
+	path := req.URL.Query().Get("path")
 	bucket := initializeBucket()
 	defer bucket.Close()
 	w, err := bucket.NewWriter(req.Context(), path, nil)
 	if err != nil {
 		return []byte(err.Error()), http.StatusInternalServerError
 	}
-	_, writeErr := fmt.Fprintln(w, req.Body)
-	closeErr := w.Close()
-	if writeErr != nil {
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
 		return []byte(err.Error()), http.StatusInternalServerError
 	}
+	_, writeErr := fmt.Fprint(w, string(body))
+	if writeErr != nil {
+		return []byte(writeErr.Error()), http.StatusInternalServerError
+	}
+	closeErr := w.Close()
 	if closeErr != nil {
-		return []byte(err.Error()), http.StatusInternalServerError
+		return []byte(closeErr.Error()), http.StatusInternalServerError
 
 	}
 	return []byte("success"), http.StatusOK
 }
 
 func ReadFile(req *http.Request) ([]byte, int) {
-	path := chi.URLParam(req, "path")
+	path := req.URL.Query().Get("path")
 	bucket := initializeBucket()
 	defer bucket.Close()
 	response, err := bucket.NewReader(req.Context(), path, nil)
 	if err != nil {
-
+		return []byte(err.Error()), http.StatusInternalServerError
+	}
+	body, err := io.ReadAll(response)
+	if err != nil {
 		return []byte(err.Error()), http.StatusInternalServerError
 	}
 	closeErr := response.Close()
 	if closeErr != nil {
 		return []byte(closeErr.Error()), http.StatusInternalServerError
 	}
-	body, err := ioutil.ReadAll(response)
-	if err != nil {
-		return []byte(err.Error()), http.StatusInternalServerError
-	}
 	return body, http.StatusOK
 }
 
 func DeleteFile(req *http.Request) int {
-	path := chi.URLParam(req, "path")
+	path := req.URL.Query().Get("path")
 	bucket := initializeBucket()
 	defer bucket.Close()
 	if err := bucket.Delete(req.Context(), path); err != nil {

@@ -36,8 +36,8 @@ class TestRunner:
         markers = add_marker_subexpression(markers, upgrade_marker)
         log.info(f'Running with markers {markers}')
         args = [command, "-m", f'"{markers}"', disable_tests]
-        print(" ".join(args))
-        result: subprocess.CompletedProcess[bytes] = subprocess.run(args, capture_output=True, shell=True, text=True)
+        log.info(" ".join(args))
+        result: subprocess.CompletedProcess[bytes] = subprocess.run(" ".join(args), capture_output=True, shell=True, text=True)
 
         status = None
         out = str(result.stdout)

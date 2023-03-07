@@ -15,9 +15,9 @@ class Builds(Enum):
     MAINLINE = "main"
 
 class AppBuilder:
-    def __init__(self, directory: str, provider: str):
+    def __init__(self, directory: str, provider: str, run_id: str):
         self.app_name = os.path.split(directory)[-1]
-        self.klotho_app_name = f'{directory}-{shortuuid.ShortUUID().random(length=6).lower()}'
+        self.klotho_app_name = f'{directory}-{run_id}'
         self.directory = os.path.join("apps", directory)
         self.provider = provider
         self.output_dir = os.path.join(self.directory, "compiled")

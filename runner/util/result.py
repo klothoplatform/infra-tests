@@ -47,8 +47,4 @@ class AppResult:
             self.Result = Result.SUCCESS
 
     def to_string(self) -> str:
-        string = f'directory: {self.directory}, build: {self.build}\n\tstep: {self.step}, result: {self.result}\n'
-        if self.test_results is not None:
-            for result in self.test_results:
-                string += f'{result.to_string}\n'
-        return string
+        return f'directory: {self.directory}, build: {self.build}\n\tstep: {self.step}, result: {self.result}\n'

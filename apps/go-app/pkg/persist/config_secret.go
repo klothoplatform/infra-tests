@@ -12,7 +12,7 @@ import (
 )
 
 func initializeSecret(decoder string) *runtimevar.Variable {
-	path, err := filepath.Abs("my_secret.key")
+	path, err := filepath.Abs("secrets/secret.txt")
 	if err != nil {
 		log.Fatal(err.Error())
 	}

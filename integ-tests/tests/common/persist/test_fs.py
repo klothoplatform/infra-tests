@@ -28,15 +28,15 @@ def test_write_read_text_file():
                              files={'file': file},
                              params={"path": text_upload_path})
     assert response.status_code == 200
-
+    print(len(response.text))
     response = requests.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
                             params={"path": text_upload_path})
+    print(response.text)
     assert response.status_code == 200
     assert response.text == file_content
 
 
 @pytest.mark.ts_app
-@pytest.mark.go_app
 @pytest.mark.common
 def test_write_read_public_file():
     file = open(plaintext_resource_path, 'rb')

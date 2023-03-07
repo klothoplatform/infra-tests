@@ -24,7 +24,7 @@ class AppDeployer:
             return ""
         for i in range(0,5):
             try:
-                log.info(f'Deploying stack {self.stack.name} to region {self.region}')
+                log.info(f'Deploying stack {self.stack.name} to region {self.region}, attempt #{i}')
                 url = self.deploy_app()
                 log.info(f'Deployed stack, {self.stack.name}, successfully. Got API Url: {url}')
                 return url
@@ -54,7 +54,7 @@ class AppDeployer:
     def destroy_and_remove_stack(self, output_dir: str) -> bool:
          for i in range(0,5):
             try:
-                log.info(f'Destroying stack {self.stack.name}')
+                log.info(f'Destroying stack {self.stack.name}, attempt #{i}')
                 self.pulumi_logger.set_file_name(f'destroy.txt')
                 self.stack.destroy(on_output=self.pulumi_logger.log)
                 log.info(f'Removing stack {self.stack.name}')
