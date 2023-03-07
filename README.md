@@ -3,13 +3,29 @@ Repository for infrastructure &amp; runtime integration tests (both applications
 
 # Running Tests
 
+## Installing dependencies
+
+1. Install `pipenv` if you don't already have it. (On Macs: `brew install pipenv`)
+2. Run:
+   ```
+   pipenv install
+   ```
+   This will create a virtualenv for you, and install dependendencies into it.
+
 ## Running locally
 
 You must have 2 binaries present at the root of this package
 * klotho_main - the mainline versions of klotho you want to test
 * klotho_release - the released version of klotho you want to test
 
-```jordansinger@Jordans-MacBook-Pro infra-tests % python3.10 runner/runner.py --help
+To load your pipenv environment:
+
+```bash
+pipenv shell
+```
+
+```
+$ python3.10 runner/runner.py --help
 Usage: runner.py [OPTIONS]
 
 Options:
