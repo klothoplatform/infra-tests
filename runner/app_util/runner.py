@@ -44,7 +44,7 @@ class AppRunner:
         test_results = test_runner.run()
         final_result = Result.SUCCESS
         for test_result in test_results:
-            log.info(test_result.to_string())
+            log.info(f'Test result for {builder.klotho_app_name}: {test_result.to_string()}')
             if test_result.result != Result.SUCCESS:
                 final_result = Result.TESTS_FAILED
 

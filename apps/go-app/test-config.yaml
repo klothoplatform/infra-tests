@@ -1,0 +1,5 @@
+default:
+  secrets:
+    - ./secrets/secret.txt
+  pulumi-config:
+    config-mySecret-FilePath: ./secrets/secret.txt

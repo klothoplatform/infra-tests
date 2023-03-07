@@ -55,39 +55,43 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
         upgrade = False
         stack: auto.Stack = None
         step = 1
+    
+        try:
+            for file in files:
+                path = os.path.join(config_base_path, file)
+                if not os.path.isfile(path):
+                    log.debug(f'{path} is not a file. Skipping run.')
+                    continue
 
-
-        for file in files:
-            path = os.path.join(config_base_path, file)
-            if not os.path.isfile(path):
-                log.debug(f'{path} is not a file. Skipping run.')
-                continue
-
-            file_name = f'{os.path.splitext(file)[0]}.txt'
-            configure_test_logger(run_id, builder.app_name, file_name)
-            pulumi_logger.set_file_name(file_name)
-            log.info(f'Running on path {path}')
-            if not upgrade:
-                result_key = sanitize_result_key(f'{path}-{Builds.RELEASE}')
+                file_name = f'{os.path.splitext(file)[0]}.txt'
+                configure_test_logger(run_id, builder.app_name, file_name)
+                pulumi_logger.set_file_name(file_name)
+                log.info(f'Running on path {path}')
+                if not upgrade:
+                    result_key = sanitize_result_key(f'{path}-{Builds.RELEASE}')
+                    stack, result, test_results = app_runner.deploy_and_test(path, upgrade, stack)
+                    appResults.update({result_key: AppResult(path, Builds.RELEASE, result, test_results, step)})
+                    step += 1
+                    upgrade = True
+                    
+                # Build the app with klotho's mainline version and configure the pulumi config
+                result_key = sanitize_result_key(f'{path}-{Builds.MAINLINE}')
                 stack, result, test_results = app_runner.deploy_and_test(path, upgrade, stack)
-                appResults[result_key] = AppResult(path, Builds.RELEASE, result, test_results, step)
+                appResults.update({result_key: AppResult(path, Builds.MAINLINE, result, test_results, step)})
                 step += 1
-                upgrade = True
-                
-            # Build the app with klotho's mainline version and configure the pulumi config
-            result_key = sanitize_result_key(f'{path}-{Builds.MAINLINE}')
-            stack, result, test_results = app_runner.deploy_and_test(path, upgrade, stack)
-            appResults[result_key] = AppResult(path, Builds.MAINLINE, result, test_results, step)
-            step += 1
 
+        except Exception as e:
+            log.error(e)
+            log.error(traceback.print_exc())
+        finally:
+            if stack is not None:
+                deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
+                result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
+                result_key = sanitize_result_key(f'{stack.name}-destroy')
+                appResults.update({result_key: AppResult(path, None, result, test_results, step)})
     except Exception as e:
-        log.error(e)
+        log.error(f'Failed to configure app  run {e}')
         log.error(traceback.print_exc())
-    finally:
-        deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
-        result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
-        result_key = sanitize_result_key(f'{stack.name}-destroy')
-        appResults[result_key] = AppResult(path, None, result, test_results, step)
 
             
 

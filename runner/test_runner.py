@@ -42,11 +42,6 @@ class TestRunner:
         out = str(result.stdout)
         err = str(result.stderr)
 
-        if len(out) > 0:
-            log.info(out)
-        if len(err) > 0:
-            log.error(err)
-
         if result.returncode == 0:
             status = Result.SUCCESS
         elif result.returncode == 1 and out.endswith("======"):

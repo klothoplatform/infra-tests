@@ -18,6 +18,7 @@ plaintext_resource_path = 'resources/plaintext.txt'
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 def test_write_read_text_file():
     file = open(plaintext_resource_path, 'rb')
@@ -36,6 +37,7 @@ def test_write_read_text_file():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 def test_write_read_public_file():
     file = open(plaintext_resource_path, 'rb')
@@ -57,6 +59,7 @@ def test_write_read_public_file():
 @pytest.mark.xfail(bool=app_name == "ts-app" and provider == "aws",
                    reason="multipart mime types are not currently treated as binary content in the AWS API gateway")
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 def test_write_binary_file_multipart():
     file = open(binary_resource_path, 'rb')
@@ -74,6 +77,7 @@ def test_write_binary_file_multipart():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 def test_write_read_binary_file_direct():
     file_content = get_file_content(binary_resource_path)
@@ -95,6 +99,7 @@ def test_write_read_binary_file_direct():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 @pytest.mark.pre_upgrade
 def test_write_files_before_upgrade():
@@ -113,6 +118,7 @@ def test_write_files_before_upgrade():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 @pytest.mark.pre_upgrade
 def test_read_text_file_after_upgrade():
@@ -122,6 +128,7 @@ def test_read_text_file_after_upgrade():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 @pytest.mark.post_upgrade
 def test_read_binary_file_after_upgrade():
@@ -133,6 +140,7 @@ def test_read_binary_file_after_upgrade():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 def test_delete_files():
     response = requests.delete(resolve_primary_gw_url("test/persist-fs/delete-file"), params={"path": text_upload_path})
