@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app import secret
+from app.secret import get_secret
 
 from starlette.responses import PlainTextResponse
 
@@ -12,9 +12,9 @@ app = FastAPI()
 
 @app.get("/test/persist-secret/read-binary-secret")
 async def get_secret_binary():
-    return await secret.get_secret(binary=True)
+    return await get_secret(binary=True)
 
 
 @app.get("/test/persist-secret/read-text-secret", response_class=PlainTextResponse)
 async def get_secret_text():
-    return await secret.get_secret()
+    return await get_secret()
