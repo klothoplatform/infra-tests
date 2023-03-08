@@ -1,12 +1,12 @@
 from tests import primary_gw_url, static_unit_url
 
 
-def resolve_primary_gw_url(path: str) -> str:
-    return urljoin(primary_gw_url, path)
+def resolve_primary_gw_url(*segments: str) -> str:
+    return urljoin(primary_gw_url, *segments)
 
 
-def resolve_static_unit_url(path: str):
-    return urljoin(static_unit_url, path)
+def resolve_static_unit_url(*segments: str):
+    return urljoin(static_unit_url, *segments)
 
 
 def urljoin(*args: str):

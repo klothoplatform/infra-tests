@@ -9,6 +9,7 @@ import {testPubSubEvent} from "./tests/pubsub-tests";
 import * as bodyParser from "body-parser";
 import {subscribeToEvent1} from "./resources/pubsub/events";
 import {testIsUsingCustomDockerfile} from "./tests/custom-dockerfile-tests";
+import {testHandlesPathParams} from "./tests/expose-tests";
 
 /**
  * @klotho::execution_unit {
@@ -55,8 +56,9 @@ router1.get("/test/persist-kv/get-kv-nosql-entry", persist.testGetKVMapEntry);
 router1.post("/test/persist-kv/set-kv-nosql-entry", persist.testSetKVMapEntry);
 router1.delete("/test/persist-kv/delete-kv-nosql-entry", persist.testDeleteKVMapEntry);
 
-router1.post("/test/pubsub/pubsub-event", testPubSubEvent)
+router1.post("/test/pubsub/pubsub-event", testPubSubEvent);
 
+router1.get("/test/expose/handles-path-params/:param", testHandlesPathParams);
 // TODO: move testExecuteCrossExecTasks to a separate file after implementation of https://github.com/klothoplatform/klotho-pro/issues/65.
 export async function testExecuteCrossExecTasks(req, res) {
     res.json(await Promise.all([
