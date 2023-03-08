@@ -4,11 +4,16 @@
 //   static_files = ["static-unit.js"]
 // }
 const nodeStatic = require('node-static');
-const file = new nodeStatic.Server('./');
+const server = new nodeStatic.Server('./');
 
 require('http').createServer(function (request, response) {
     request.addListener('end', function () {
-        file.serve(request, response);
+            if (request.url === "/") {
+                server.serveFile('/static-unit-index.html', 200, {}, request, response);
+            } else {
+                server.serve(request, response);
+            }
+
     }).resume();
 }).listen(4200);
 

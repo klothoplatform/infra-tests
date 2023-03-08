@@ -1,5 +1,7 @@
 execution_units:
-  executor:
+  executor-1:
+    type: ecs
+  executor-2:
     type: ecs
   task-1:
     type: lambda

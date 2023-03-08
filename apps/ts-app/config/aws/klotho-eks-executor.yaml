@@ -1,5 +1,7 @@
 execution_units:
-  executor:
+  executor-1:
+    type: eks
+  executor-2:
     type: eks
   task-1:
     type: lambda
