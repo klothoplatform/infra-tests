@@ -35,9 +35,9 @@ export const set = async (key: string, value: string) => {
     await KV.save(entry)
 }
 
-export async function get (key: string): Promise<string | undefined> {
+export async function get (key: string): Promise<KV | null> {
     await dataSource;
     return (await KV.findOneBy({
         key: key,
-    }))?.value
+    }));
 }

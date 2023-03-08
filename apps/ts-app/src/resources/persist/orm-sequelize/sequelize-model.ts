@@ -64,7 +64,7 @@ export async function get(key: string): Promise<any> {
             },
         });
         if (items.length == 1) {
-            return items[0].get().value;
+            return items[0].get();
         }
     } catch (error) {
         console.error(`unable to get key:${key}. Received error:${error}`);

@@ -1,2 +1,6 @@
 # Compile with default settings
-execution_units:
+static_unit:
+  static-unit:
+    content_delivery_network:
+      id: static-unit-cdn
+

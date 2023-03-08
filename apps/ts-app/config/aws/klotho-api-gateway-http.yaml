@@ -2,3 +2,7 @@ exposed:
   ts-gateway-primary:
     type: apigateway
     api_type: HTTP
+static_unit:
+  static-unit:
+    content_delivery_network:
+      id: static-unit-cdn

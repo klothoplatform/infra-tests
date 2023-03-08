@@ -7,3 +7,7 @@ execution_units:
     type: ecs
   task-3:
     type: eks
+static_unit:
+  static-unit:
+    content_delivery_network:
+      id: static-unit-cdn
