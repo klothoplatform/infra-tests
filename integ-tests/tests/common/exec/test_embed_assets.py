@@ -13,8 +13,8 @@ embedded_text_content = get_file_content(os.path.join("..", "apps", app_name, em
 @pytest.mark.ts_app
 @pytest.mark.common
 def test_get_embedded_asset():
-    response = session.get(resolve_primary_gw_url("/test/embed-assets/get-asset"),
-                            params={"path": embedded_text_file, "encoding": "utf-8"})
+    response = session.get(resolve_primary_gw_url("test/embed-assets/get-asset"),
+                           params={"path": embedded_text_file, "encoding": "utf-8"})
     assert response.status_code == 200
     assert response.text == embedded_text_content.decode("utf-8")
 
@@ -24,6 +24,6 @@ def test_get_embedded_asset():
 @pytest.mark.ts_app
 @pytest.mark.common
 def test_embedded_asset_excluded():
-    response = session.get(resolve_primary_gw_url("/test/embed-assets/get-asset"),
-                            params={"path": excluded_text_file})
+    response = session.get(resolve_primary_gw_url("test/embed-assets/get-asset"),
+                           params={"path": excluded_text_file})
     assert response.status_code == 404
