@@ -3,9 +3,10 @@ import os
 from pulumi import automation as auto
 from enum import Enum
 import logging
-import shortuuid
 from app_util.config import TestConfig
 import shutil
+import tempfile
+from urllib import request
 
 log = logging.getLogger("DeploymentRunner")
 
@@ -33,19 +34,36 @@ class AppBuilder:
 
     def build_app(self, config_path, build: Builds) -> bool:
         log.info(f'Building application, {self.klotho_app_name}, with build {build} and config path {config_path}')
+        tmp_path = None
         try:
             if build is Builds.RELEASE:
-                result: subprocess.CompletedProcess[bytes] = subprocess.run(["./klotho_release", self.directory, "--app", 
-                                                                        self.klotho_app_name, "--provider", 
-                                                                        self.provider, "--config", config_path,
-                                                                        "--outDir", self.output_dir])
-                result.check_returncode()
+                klotho_bin_path = "./klotho_release"
+                if not os.path.exists(klotho_bin_path):
+                    with tempfile.NamedTemporaryFile(mode='x', delete=False) as f:
+                        tmp_path = f.name
+                    log.info(f'{klotho_bin_path} not found; downloading release klotho to {tmp_path}')
+                    uname = os.uname()
+                    if uname.sysname == 'Darwin':
+                        release_url = f'http://srv.klo.dev/update/latest/darwin/{uname.machine}?stream=pro:latest'
+                    elif uname.sysname == 'Linux':
+                        release_url = 'http://srv.klo.dev/update/latest/linux/x86_64?stream=pro:latest'
+                    else:
+                        raise Exception(f"unsupported os: {uname.sysname}")
+                    request.urlretrieve(release_url, tmp_path)
+                    os.chmod(tmp_path, 0o755)
+                    klotho_bin_path = tmp_path
             else:
-                result: subprocess.CompletedProcess[bytes] = subprocess.run(["./klotho_main", self.directory, "--app", 
-                                                                        self.klotho_app_name, "--provider", 
-                                                                        self.provider, "--config", config_path,
-                                                                        "--outDir", self.output_dir])
-                result.check_returncode()
+                klotho_bin_path = "./klotho_main"
+
+            if not os.path.exists(klotho_bin_path):
+                raise Exception(f"Couldn't find klotho binary at {klotho_bin_path}")
+
+            result: subprocess.CompletedProcess[bytes] = subprocess.run([klotho_bin_path, self.directory, "--app",
+                                                                         self.klotho_app_name, "--provider",
+                                                                         self.provider, "--config", config_path,
+                                                                         "--outDir", self.output_dir])
+            result.check_returncode()
+
             log.info(f'Successfully built {build} release for path {config_path}')
             self.install_npm_deps()
             self.copy_secrets()
@@ -53,6 +71,10 @@ class AppBuilder:
         except Exception as e:
             log.error(e)
             return False
+        finally:
+            if tmp_path:
+                log.info(f"Deleting {tmp_path}")
+                os.remove(tmp_path)
 
         
     def create_pulumi_stack(self) -> auto.Stack:
