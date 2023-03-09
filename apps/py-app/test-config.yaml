@@ -2,4 +2,4 @@ default:
   secrets:
     - ./secrets/secret.txt
   pulumi-config:
-    config-mySecret-FilePath: ./secrets/secret.txt
+    config-pysecret-FilePath: ./secrets/secret.txt
