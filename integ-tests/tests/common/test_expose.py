@@ -7,6 +7,7 @@ from tests import session
 from tests.util import resolve_primary_gw_url
 
 
+@pytest.mark.cs_app
 @pytest.mark.ts_app
 @pytest.mark.common
 def test_handles_path_params():

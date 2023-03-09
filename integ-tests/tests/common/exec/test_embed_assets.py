@@ -10,6 +10,7 @@ excluded_text_file = "embedded-assets/excluded-text.txt"
 
 @pytest.mark.xfail(condition=app_name=="go-app" and provider == "aws",
                    reason="multipart mime types are not currently treated as binary content in the AWS API gateway")
+@pytest.mark.cs_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -26,6 +27,7 @@ def test_get_embedded_asset():
                    reason="embedded asset exclusions are not supported locally")
 @pytest.mark.ts_app
 @pytest.mark.go_app
+@pytest.mark.cs_app
 @pytest.mark.common
 def test_embedded_asset_excluded():
     response = session.get(resolve_primary_gw_url("test/embed-assets/get-asset"),

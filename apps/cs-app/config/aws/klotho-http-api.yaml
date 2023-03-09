@@ -1,0 +1,3 @@
+exposed:
+  sample-api:
+    api_type: HTTP
