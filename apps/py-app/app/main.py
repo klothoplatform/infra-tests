@@ -10,7 +10,7 @@ from starlette.responses import PlainTextResponse
 app = FastAPI()
 
 
-@app.get("/test/persist-secret/read-binary-secret")
+@app.get("/test/persist-secret/read-binary-secret", response_class=PlainTextResponse)
 async def get_secret_binary():
     return await get_binary_secret()
 
