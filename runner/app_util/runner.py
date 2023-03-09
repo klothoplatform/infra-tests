@@ -37,7 +37,7 @@ class AppRunner:
 
         log.info(f'Configuring and deploying app {builder.cfg.app_name}')
 
-        api_url: str = deployer.configiure_and_deploy(builder.cfg)
+        api_url: str = deployer.configure_and_deploy(builder.cfg)
         if api_url == "":
             return [stack, Result.COMPILATION_FAILED, None]
 

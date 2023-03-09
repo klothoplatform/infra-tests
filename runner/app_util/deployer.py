@@ -3,7 +3,7 @@ from pulumi import automation as auto
 from app_util.config import TestConfig
 from util.logging import PulumiLogging, ServiceLogging
 import logging
-import json
+import os
 import boto3
 
 log = logging.getLogger("DeploymentRunner")
@@ -18,7 +18,8 @@ class AppDeployer:
     def set_stack(self, stack: auto.Stack):
         self.stack = stack
 
-    def configiure_and_deploy(self, cfg: TestConfig) -> str:
+    def configure_and_deploy(self, cfg: TestConfig) -> str:
+        self.configure_tags()
         self.configure_region()
         self.configure_pulumi_app(cfg)
         try:
@@ -47,6 +48,14 @@ class AppDeployer:
             if type(value.value[0]) is str:
                 return value.value[0]
         return ""
+
+    def configure_tags(self):
+        result: subprocess.CompletedProcess[bytes] = subprocess.run(
+            ["pulumi", "stack", "tag", "set", "usage", "infra-test", "-s", self.stack.name],
+            stdout=open(os.devnull, 'wb'),
+            cwd=self.stack.workspace.work_dir
+        )
+        result.check_returncode()
 
     def configure_region(self):
         self.stack.set_config("aws:region", auto.ConfigValue(self.region))
@@ -119,5 +128,3 @@ class AppDeployer:
             except KeyError:
                 break
         return events
-    
-
