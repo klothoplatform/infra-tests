@@ -1,10 +1,12 @@
 import logging
 import os
 import sys
+from typing import List
 
 log_directory = "logs"
 pulumi_log_directory = "pulumi"
 klotho_log_directory = "compilations"
+service_log_directory = "service"
 
 def configure_deployment_logger(run_id: str):
     log_path = os.path.join(log_directory, run_id)
@@ -58,3 +60,16 @@ class PulumiLogging:
 
     def set_file_name(self, file_name: str):
         self.current_path = os.path.join(self.base_path, file_name)
+
+class ServiceLogging:
+    key_words = ["created", "updated", "failed", "deleted", "Previewing update", "View Live"]
+
+    def __init__(self, run_id: str, app: str, config: str):
+        self.base_path = os.path.join(log_directory, run_id, app, service_log_directory, config)
+        if not os.path.exists(self.base_path):
+            os.makedirs(self.base_path)
+
+    def write_file(self, file_name: str, contents: List[str]):
+        with open(os.path.join(self.base_path, file_name), "a") as log_file:
+            for line in contents:
+                log_file.write(line+"\n")

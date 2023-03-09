@@ -1,8 +1,10 @@
 import subprocess
 from pulumi import automation as auto
 from app_util.config import TestConfig
-from util.logging import PulumiLogging
+from util.logging import PulumiLogging, ServiceLogging
 import logging
+import json
+import boto3
 
 log = logging.getLogger("DeploymentRunner")
 
@@ -10,6 +12,8 @@ class AppDeployer:
     def __init__(self, region: str, pulumi_logger: PulumiLogging):
         self.region = region
         self.pulumi_logger = pulumi_logger
+        self.logs_client= boto3.client('logs', region_name=self.region)
+
 
     def set_stack(self, stack: auto.Stack):
         self.stack = stack
@@ -60,12 +64,60 @@ class AppDeployer:
                 log.info(f'Removing stack {self.stack.name}')
                 command = f'cd {output_dir}; pulumi stack rm -s {self.stack.name} -y'
                 result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
-                log.info(result.stdout)
                 result.check_returncode()
-                return True
+                return True  
             except Exception as e:
                 log.error(e)
                 log.info(f'Refreshing stack {self.stack.name}')
                 self.stack.refresh()
-            finally:
                 return False
+            
+    def download_logs(self, logger: ServiceLogging):
+        deployment = self.stack.export_stack()
+        resources = deployment.deployment.get('resources')
+        for resource in resources:
+            
+            # This covers lambda and ecs since we explicitly create the log groups for both
+            if resource['type'] == 'aws:cloudwatch/logGroup:LogGroup':
+                log_group_name: str = resource['outputs']['name']
+                log.info(f'Getting logs from {log_group_name}')
+                log_streams = self.logs_client.describe_log_streams(
+                    logGroupName=log_group_name,
+                    limit=50
+                )
+                for stream in log_streams['logStreams']:
+                    stream_name: str = stream['logStreamName']
+                    events = self.get_log_events(log_group_name, stream_name)
+                    logger.write_file(f'{log_group_name.replace("/", "_")}-{stream_name.replace("/", "_")}', events)
+
+            elif resource['type'] == 'aws:eks/cluster:Cluster':
+                cluster_name = resource['outputs']['name']
+                log_group_name: str = f'/aws/containerinsights/{cluster_name}/application'
+                log.info(f'Getting logs from {log_group_name}')
+                log_streams = self.logs_client.describe_log_streams(
+                    logGroupName=log_group_name,
+                    limit=50
+                )
+                for stream in log_streams['logStreams']:
+                    stream_name: str = stream['logStreamName']
+                    events = self.get_log_events(log_group_name, stream_name)
+                    logger.write_file(f'{log_group_name.replace("/", "_")}-{stream_name.replace("/", "_")}', events)
+                    
+
+    def get_log_events(self, log_group_name: str, stream: str):
+        kwargs = {
+            'logGroupName': log_group_name,
+            'limit': 50,
+            'logStreamName': stream
+        }
+        events = []
+        while True:
+            resp = self.logs_client.get_log_events(**kwargs)
+            try:
+                [events.append(e['message']) for e in resp['events']]
+                kwargs['nextToken'] = resp['nextToken']
+            except KeyError:
+                break
+        return events
+    
+

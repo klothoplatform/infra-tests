@@ -11,6 +11,8 @@ aiofiles = "==0.8.0"
 pulumi = "<4.0.0,>=3.0.0"
 shortuuid = "==1.0.11"
 click = "==8.1.3"
+kubernetes = "==26.1.0"
+boto3 = "==1.26.87"
 
 [dev-packages]
 
