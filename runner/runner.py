@@ -19,16 +19,20 @@ log = logging.getLogger("DeploymentRunner")
 @click.option('--region', type=str, required=True, help='The region to deploy to')
 @click.option('--disable-tests', multiple=True, help='The tests to be disabled')
 @click.option('--provider', type=str, required=True, help='The provider to test')
-def run(directories, region, disable_tests, provider):
+@click.option('--config-filenames', type=str, required=False, help='A comma separated list of names of specific config files to test')
+@click.option('--no-destroy', is_flag=True, help='Set if you want to leave the stack of the tests up')
+def run(directories, region, disable_tests, provider, config_filenames: str, no_destroy):
     run_id = shortuuid.ShortUUID().random(length=6).lower()
     configure_deployment_logger(run_id)
     result_code = 0
+
+    config_files = config_filenames.split(",") if config_filenames is not None else []
 
     log.info(f'Starting run with id: {run_id}')
     # pool = concurrent.futures.ThreadPoolExecutor(max_workers=5)
     appResults = {}
     for directory in directories.split(","):
-        run_single(directory, region, disable_tests, provider, appResults, run_id)
+        run_single(directory, region, disable_tests, provider, appResults, run_id, config_files, no_destroy)
     #     pool.submit(run_single(directory, region, disable_tests, provider, appResults))
     # pool.shutdown(wait=True)
 
@@ -41,7 +45,7 @@ def run(directories, region, disable_tests, provider):
     exit(result_code)
 
 
-def run_single(directory: str, region: str, disable_tests: List[str], provider: str, appResults: dict[Type[str], Type[AppResult]], run_id: str):
+def run_single(directory: str, region: str, disable_tests: List[str], provider: str, appResults: dict[Type[str], Type[AppResult]], run_id: str, config_filenames: List[str], no_destroy: bool):
     try:
         os.environ['PULUMI_CONFIG_PASSPHRASE'] = ""
         builder = AppBuilder(directory, provider, run_id)
@@ -63,6 +67,9 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                     log.debug(f'{path} is not a file. Skipping run.')
                     continue
 
+                if file not in config_filenames and len(config_filenames) > 0:
+                    continue
+
                 file_name = f'{os.path.splitext(file)[0]}.txt'
                 configure_test_logger(run_id, builder.app_name, file_name)
                 pulumi_logger.set_file_name(file_name)
@@ -73,7 +80,6 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
                     appResults.update({result_key: AppResult(path, Builds.RELEASE, result, test_results, step)})
                     step += 1
                     upgrade = True
-                    exit(0)
                     
                 # Build the app with klotho's mainline version and configure the pulumi config
                 result_key = sanitize_result_key(f'{path}-{Builds.MAINLINE}')
@@ -85,12 +91,11 @@ def run_single(directory: str, region: str, disable_tests: List[str], provider: 
             log.error(e)
             log.error(traceback.print_exc())
         finally:
-            if stack is not None:
-                print("test")
-                # deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
-                # result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
-                # result_key = sanitize_result_key(f'{stack.name}-destroy')
-                # appResults.update({result_key: AppResult(path, None, result, test_results, step)})
+            if stack is not None and not no_destroy:
+                deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
+                result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
+                result_key = sanitize_result_key(f'{stack.name}-destroy')
+                appResults.update({result_key: AppResult(path, None, result, test_results, step)})
     except Exception as e:
         log.error(f'Failed to configure app  run {e}')
         log.error(traceback.print_exc())

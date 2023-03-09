@@ -27,6 +27,7 @@ def configure_test_logger(run_id: str, app: str, config: str):
     if not os.path.exists(app_log_path):
         os.makedirs(app_log_path)
     test_log = logging.getLogger("TestRunner")
+    remove_all_handlers(test_log)
     test_log.setLevel(logging.DEBUG)
     formatter = logging.Formatter('%(asctime)s - %(name)s - {%(pathname)s:%(lineno)d} - %(levelname)s - %(message)s')
     fileHandler = logging.FileHandler(os.path.join(app_log_path, config))
@@ -34,7 +35,9 @@ def configure_test_logger(run_id: str, app: str, config: str):
     test_log.addHandler(fileHandler)
     test_log.propagate = False
 
-
+def remove_all_handlers(logger: logging.Logger):
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
 
 class PulumiLogging:
 

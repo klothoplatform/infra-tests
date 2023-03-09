@@ -91,8 +91,7 @@ func TestDeleteFile() http.HandlerFunc {
 
 func TestReadOrmEnvVarKvEntry() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		code := persist.ReadOrmEnvVarKvEntry(r)
-		w.WriteHeader(code)
+		persist.ReadOrmEnvVarKvEntry(r, w)
 	}
 }
 

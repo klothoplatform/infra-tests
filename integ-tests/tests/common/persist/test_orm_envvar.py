@@ -10,6 +10,7 @@ entry = {"key": str(uuid.uuid4()), "value": str(uuid.uuid4())}
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 def test_write_read_kv_entry():
     response = session.post(resolve_primary_gw_url("test/persist-orm/envvar-write-kv-entry"),
@@ -19,10 +20,13 @@ def test_write_read_kv_entry():
     response = session.get(resolve_primary_gw_url("test/persist-orm/envvar-read-kv-entry"),
                            params={"key": entry["key"]})
     assert response.status_code == 200
+    print(response.content)
+    print(response.headers)
     assert response.json() == entry
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 @pytest.mark.pre_upgrade
 def test_write_before_upgrade():
@@ -32,6 +36,7 @@ def test_write_before_upgrade():
 
 
 @pytest.mark.ts_app
+@pytest.mark.go_app
 @pytest.mark.common
 @pytest.mark.post_upgrade
 def test_read_after_upgrade():

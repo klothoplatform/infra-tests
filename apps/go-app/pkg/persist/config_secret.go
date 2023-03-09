@@ -34,6 +34,7 @@ func ReadSecretDotTxt(context context.Context, decoder string) ([]byte, int) {
 	defer v.Close()
 	snapshot, err := v.Latest(context)
 	if err != nil {
+		fmt.Printf("Error: %s", err.Error())
 		return []byte(err.Error()), http.StatusInternalServerError
 	}
 	secretValueString, ok := snapshot.Value.(string)

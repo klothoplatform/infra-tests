@@ -1,0 +1,17 @@
+# Compile with default settings
+execution_units:
+  executor: 
+    type: eks
+    pulumi_params:
+      nodeType: node
+      replicas: 1
+      nodeConstraints:
+        instanceType: c4.large
+        diskSize: 200
+      limits: 
+        cpu: 1
+        memory: 256
+      autoscalingConfig:
+        cpuUtilization: 100
+        memoryUtilization: 100
+        maxReplicas: 4

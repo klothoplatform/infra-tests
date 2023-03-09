@@ -11,8 +11,8 @@ import (
 )
 
 type Record struct {
-	Key   string
-	Value string
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 /**
@@ -26,28 +26,33 @@ type Record struct {
 
 func connect() *gorm.DB {
 	db, err := gorm.Open(postgres.Open(os.Getenv("ORM_CONNECTION_STRING")), &gorm.Config{})
+	db.AutoMigrate(&Record{})
 	if err != nil {
 		panic(err)
 	}
 	return db
 }
 
-func ReadOrmEnvVarKvEntry(req *http.Request) int {
+func ReadOrmEnvVarKvEntry(req *http.Request, w http.ResponseWriter) {
 	key := req.URL.Query().Get("key")
 	db := connect()
 	record := Record{Key: key}
-	result := db.First(&record)
+	result := db.First(&record, "key = ?", key)
 	if result.Error != nil {
 		fmt.Println(result.Error.Error())
-		return http.StatusInternalServerError
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	return http.StatusOK
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(record)
 }
 
 func WriteOrmEnvVarKvEntry(req *http.Request, w http.ResponseWriter) {
 	var rec Record
 	err := json.NewDecoder(req.Body).Decode(&rec)
 	if err != nil {
+		fmt.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -59,5 +64,4 @@ func WriteOrmEnvVarKvEntry(req *http.Request, w http.ResponseWriter) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(rec)
 }

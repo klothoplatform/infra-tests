@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 from typing import Tuple, List
 
 from pulumi import automation as auto
@@ -17,16 +18,17 @@ class AppRunner:
         self.builder = builder
         self.deployer = deployer
 
-    def deploy_and_test(self, path: str, upgrade: bool, stack) -> Tuple[auto.Stack, Result, List[TestResult]]:
+    def deploy_and_test(self, path: str, upgrade: bool, stack: auto.Stack) -> Tuple[auto.Stack, Result, List[TestResult]]:
         builder = self.builder
         deployer = self.deployer
         build = Builds.RELEASE if not upgrade else Builds.MAINLINE
+        sleep_time = 450 if stack is None else 30
 
         log.info(f'Building release application for path {path}')
         # Build the app with klotho's released version and configure the pulumi config
         app_built = builder.build_app(path, build)
         if not app_built:
-            return [None, Result.COMPILATION_FAILED, None]
+            return [stack, Result.COMPILATION_FAILED, None]
 
         if stack is None:
             stack = builder.create_pulumi_stack()
@@ -39,6 +41,9 @@ class AppRunner:
             return [stack, Result.COMPILATION_FAILED, None]
 
         url = format_url(api_url)
+
+        log.info(f'Sleeping for {sleep_time} seconds while stack settles.')
+        time.sleep(sleep_time)
 
         test_runner = TestRunner(builder.app_name, url, upgrade, [])
         test_results = test_runner.run()

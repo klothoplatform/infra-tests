@@ -9,7 +9,20 @@ import (
 	"github.com/klothoplatform/mega-app/pkg/tests"
 )
 
+/**
+ * @klotho::execution_unit {
+ *   id = "executor"
+ * }
+ */
+
 func main() {
+
+	// @klotho::embed_assets {
+	// id = "embedded-assets"
+	// include = ["/embedded-assets/**/*.txt"]
+	// exclude = ["**/excluded-text.txt"]
+	// }
+	//
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
@@ -30,6 +43,8 @@ func main() {
 
 	r.Get("/test/persist-orm/envvar-read-kv-entry", tests.TestReadOrmEnvVarKvEntry())
 	r.Post("/test/persist-orm/envvar-write-kv-entry", tests.TestWriteOrmEnvVarKvEntry())
+
+	r.Get("/test/embed-assets/get-asset", tests.TestGetEmbeddedAsset())
 
 	fmt.Println("Listening on :3000")
 

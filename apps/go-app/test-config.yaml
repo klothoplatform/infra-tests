@@ -3,3 +3,5 @@ default:
     - ./secrets/secret.txt
   pulumi-config:
     config-mySecret-FilePath: ./secrets/secret.txt
+    ormenvvardb_username: testuser
+    ormenvvardb_password: testpassword

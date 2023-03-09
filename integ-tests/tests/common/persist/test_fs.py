@@ -54,7 +54,7 @@ def test_write_read_public_file():
     assert response.text == file_content
 
 
-@pytest.mark.xfail(condition=app_name == "ts-app" and provider == "aws",
+@pytest.mark.xfail(condition= provider == "aws",
                    reason="multipart mime types are not currently treated as binary content in the AWS API gateway")
 @pytest.mark.ts_app
 @pytest.mark.go_app
@@ -111,10 +111,22 @@ def test_write_files_before_upgrade():
     assert response.status_code == 200
 
 
+
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
-@pytest.mark.pre_upgrade
+def test_delete_files():
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"), params={"path": text_upload_path})
+    assert response.status_code == 200
+
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
+                               params={"path": binary_upload_path})
+    assert response.status_code == 200
+
+@pytest.mark.ts_app
+@pytest.mark.go_app
+@pytest.mark.common
+@pytest.mark.post_upgrade
 def test_read_text_file_after_upgrade():
     response = session.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
                             params={"path": fixed_text_upload_path})
@@ -132,22 +144,14 @@ def test_read_binary_file_after_upgrade():
     content_matches = response.content == get_file_content("resources/image.jpg")
     assert content_matches
 
-
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
-def test_delete_files():
-    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"), params={"path": text_upload_path})
-    assert response.status_code == 200
-
-    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
-                               params={"path": binary_upload_path})
-    assert response.status_code == 200
-
-    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
-                               params={"path": fixed_text_upload_path})
-    assert response.status_code == 200
-
+@pytest.mark.post_upgrade
+def test_delete_files_post_upgrade():
     response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
                                params={"path": fixed_binary_upload_path})
+    assert response.status_code == 200
+    response = session.delete(resolve_primary_gw_url("test/persist-fs/delete-file"),
+                               params={"path": fixed_text_upload_path})
     assert response.status_code == 200
