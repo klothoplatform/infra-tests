@@ -14,9 +14,8 @@ Repository for infrastructure &amp; runtime integration tests (both applications
 
 ## Running locally
 
-You must have 2 binaries present at the root of this package
-* klotho_main - the mainline versions of klotho you want to test
-* klotho_release - the released version of klotho you want to test
+* You must have an executable `klotho_main` at the root of this package (or a symlink to it).
+* You may (optionally) have an executable `klotho_release` at the root of this package. If you do not, the runner will download the latest release and use that.
 
 To load your pipenv environment:
 
