@@ -3,15 +3,13 @@
 #   secret = true
 # }
 import aiofiles as secrets
+from typing import Literal
 
 
-async def get_binary_secret():
-    async with secrets.open('secrets/secret.txt', mode='rb') as f:
-        contents = await f.read()
-        return contents
-
-
-async def get_text_secret():
-    async with secrets.open('secrets/secret.txt', mode='r') as f:
+async def get_secret(binary: bool):
+    mode: Literal['r', 'rb'] = 'r'
+    if binary:
+        mode = 'rb'
+    async with secrets.open('secrets/secret.txt', mode=mode) as f:
         contents = await f.read()
         return contents
