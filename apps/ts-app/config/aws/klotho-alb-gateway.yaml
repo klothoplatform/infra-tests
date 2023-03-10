@@ -1,7 +1,6 @@
 exposed:
   ts-gateway-primary:
-    type: apigateway
-    api_type: HTTP
+    type: alb
 static_unit:
   static-unit:
     content_delivery_network:
