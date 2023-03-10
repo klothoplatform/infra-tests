@@ -2,7 +2,7 @@
 #   id = "main"
 # }
 from fastapi import FastAPI
-from app.secret import get_secret
+from app.persist import get_secret
 from app.crossexec.taskcombiner import combine_tasks
 
 from starlette.responses import PlainTextResponse, JSONResponse
