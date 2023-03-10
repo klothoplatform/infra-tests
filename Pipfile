@@ -18,3 +18,6 @@ boto3 = "==1.26.87"
 
 [requires]
 python_version = "3.10"
+
+[scripts]
+tests = "python3.10 runner/runner.py"
