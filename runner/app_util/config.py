@@ -6,7 +6,6 @@ class TestConfig:
         self.path = path
         self.pulumi_config = {str: str}
         self.secrets = List[str]
-        self.order = List[str]
         self.app_name = app_name
 
     def read_config(self):
@@ -16,6 +15,5 @@ class TestConfig:
                 default_cfg = cfg["default"]
                 self.pulumi_config = default_cfg["pulumi-config"]
                 self.secrets = default_cfg["secrets"]
-                self.order = default_cfg["run-order"]
             except yaml.YAMLError as exc:
                 print(exc)

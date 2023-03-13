@@ -61,7 +61,7 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
         step = 1
     
         try:
-            for file in files:
+            for file in files.sort():
                 path = os.path.join(config_base_path, file)
                 if not os.path.isfile(path):
                     log.debug(f'{path} is not a file. Skipping run.')
