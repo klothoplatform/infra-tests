@@ -1,4 +1,8 @@
 on:
+  schedule:
+    # 5am Mon - Fri, UTC: https://crontab.guru/#0_7_*_*_1-5
+    # This corresponds to 12-1am us/eastern (depending on daylight savings), or 9pm - 10pm pacific
+    - cron: '0 5 * * 1-5'
   workflow_dispatch:
     inputs:
       provider:
