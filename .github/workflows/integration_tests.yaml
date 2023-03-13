@@ -1,0 +1,105 @@
+on:
+  workflow_dispatch:
+    inputs:
+      provider:
+        description: The provider to run on
+        required: false
+        type: string
+        default: aws
+      directories:
+        description: comma-delimited list of dirs within the apps directory to run (if empty, runs all)
+        required: false
+        type: string
+        default: ts-app,go-app,py-app
+      region:
+        description: the region to deploy sample apps to
+        required: false
+        type: string
+        default: eu-west-1 # Because they contain memoryDB we cannot target us-east-1 or us-west-2
+      config_filenames:
+        description: A comma seperated list of configs to test
+        required: false
+        type: string
+      no_destroy:
+        description: A flag to keep the stack up after the run
+        required: false
+        type: boolean
+        default: false
+    
+name: run integration tests
+jobs:
+  build-klotho:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout klotho
+        uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.19.6'
+      - name: build
+        run: |
+          go generate ./...
+          go build ./cmd/klotho -o klotho_main
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: klotho_main
+          path: klotho_main
+          retention-days: 30
+  download-klotho-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Public Klotho (old version)
+        run: |
+          curl -fsSL http://srv.klo.dev/update/latest/linux/amd64 -o "klotho_release"
+      - name: upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: klotho_release
+          path: klotho_release
+          retention-days: 30
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10' 
+          cache: 'pip' # caching pip dependencies
+      - name: Install pipenv
+        run: curl https://raw.githubusercontent.com/pypa/pipenv/master/get-pipenv.py | python
+      - run: pipenv install
+      - name: download klotho release
+        uses: actions/download-artifact@v3
+        with:
+          name: klotho_release
+          path: ${{ runner.temp }}
+      - name: install klotho release
+        run: |
+          chmod +x $RUNNER_TEMP/klotho_release
+      - name: download klotho main
+        uses: actions/download-artifact@v3
+        with:
+          name: klotho_main
+          path: ${{ runner.temp }}
+      - name: install klotho main
+        run: |
+          chmod +x $RUNNER_TEMP/klotho_main
+      - uses: actions/checkout@v3
+      - name: run tests
+        run: |
+          if [[ -z "${{ inputs.config_filenames }}" ]]
+          then
+            python runner/runner.py --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }} --config-filenames ${{ inputs.config_filenames }} --no-destroy ${{ inputs.no_destroy }}
+          else
+            python runner/runner.py --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }} --no-destroy ${{ inputs.no_destroy }}
+          fi
+        env: 
+          KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+      - uses: actions/upload-artifact@v3
+        with:
+          name: logs
+          path: logs/
+          retention-days: 30
