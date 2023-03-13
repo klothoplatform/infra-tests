@@ -10,7 +10,7 @@ on:
         description: comma-delimited list of dirs within the apps directory to run (if empty, runs all)
         required: false
         type: string
-        default: ts-app
+        default: ts-app,go-app,py-app
       region:
         description: the region to deploy sample apps to
         required: false
