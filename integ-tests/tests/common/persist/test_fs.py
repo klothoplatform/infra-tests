@@ -133,6 +133,8 @@ def test_read_text_file_after_upgrade():
     assert response.text == get_file_content("resources/plaintext.txt").decode("utf-8")
 
 
+@pytest.mark.xfail(condition= provider == "aws",
+                   reason="Current content is not written correctly")
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common

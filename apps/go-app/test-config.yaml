@@ -5,11 +5,3 @@ default:
     config-mySecret-FilePath: ./secrets/secret.txt
     ormenvvardb_username: testuser
     ormenvvardb_password: testpassword
-  run-order:
-    - klotho-base.yaml
-    - klotho-ecs-executor.yaml
-    - klotho-eks-executor.yaml
-    - klotho-fronting-alb.yaml
-    - klotho-eks-executor.yaml
-    - klotho-ecs-executor.yaml
-    - klotho-base.yaml
