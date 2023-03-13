@@ -76,7 +76,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: klotho_release
-          path: ${{ runner.temp }}
       - name: install klotho release
         run: |
           chmod +x $RUNNER_TEMP/klotho_release
@@ -84,7 +83,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: klotho_main
-          path: ${{ runner.temp }}
       - name: install klotho main
         run: |
           chmod +x $RUNNER_TEMP/klotho_main
@@ -97,7 +95,7 @@ jobs:
           if [[ "${{ inputs.no_destroy }}" == "true" ]]; then
             OPTS="$OPTS --no-destroy"
           fi
-          echo "$OPTS"
+
           pipenv run tests $OPTS
         env: 
           KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
@@ -105,6 +103,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
       - uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: logs
           path: logs/
