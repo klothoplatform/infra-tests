@@ -15,6 +15,7 @@ binary_resource_path = 'resources/image.jpg'
 plaintext_resource_path = 'resources/plaintext.txt'
 
 
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -56,6 +57,7 @@ def test_write_read_public_file():
 
 @pytest.mark.xfail(condition= provider == "aws",
                    reason="multipart mime types are not currently treated as binary content in the AWS API gateway")
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -74,6 +76,7 @@ def test_write_binary_file_multipart():
     assert content_matches
 
 
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -92,6 +95,7 @@ def test_write_read_binary_file_direct():
     assert content_matches
 
 
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -111,7 +115,6 @@ def test_write_files_before_upgrade():
     assert response.status_code == 200
 
 
-
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -123,6 +126,8 @@ def test_delete_files():
                                params={"path": binary_upload_path})
     assert response.status_code == 200
 
+
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -135,6 +140,7 @@ def test_read_text_file_after_upgrade():
 
 @pytest.mark.xfail(condition= provider == "aws",
                    reason="Current content is not written correctly")
+@pytest.mark.py_app
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
@@ -145,6 +151,7 @@ def test_read_binary_file_after_upgrade():
                             params={"path": fixed_binary_upload_path})
     content_matches = response.content == get_file_content("resources/image.jpg")
     assert content_matches
+
 
 @pytest.mark.ts_app
 @pytest.mark.go_app
