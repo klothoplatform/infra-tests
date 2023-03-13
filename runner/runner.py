@@ -60,9 +60,8 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
         stack: auto.Stack = None
         step = 1
     
-        ordered_files = determine_config_order(builder.cfg, files)
         try:
-            for file in ordered_files:
+            for file in files:
                 path = os.path.join(config_base_path, file)
                 if not os.path.isfile(path):
                     log.debug(f'{path} is not a file. Skipping run.')
@@ -105,21 +104,5 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
         log.error(traceback.print_exc())
 
             
-def determine_config_order(test_config: TestConfig, files: List[str]) -> List[str]:
-    if len(test_config.order) == 0:
-        return files
-    order = []
-    for cfg in test_config.order:
-        if cfg not in files:
-            log.fatal(f'{cfg} is in test_config but does not exist in files.')
-            exit(1)
-        else:
-            order.append(cfg)
-    for cfg in files:
-        if cfg not in test_config.order:
-            log.warn(f'{cfg} does not exist in test config, but exists in files. Adding to the end of the test run order.')
-            order.append(cfg)
-    return order
-
 if __name__ == '__main__':
     run()
