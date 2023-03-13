@@ -42,7 +42,7 @@ jobs:
     steps:
       - name: Install Public Klotho (old version)
         run: |
-          curl -fsSL http://srv.klo.dev/update/latest/linux/amd64 -o "klotho-release"
+          curl -fsSL http://srv.klo.dev/update/latest/linux/amd64 -o "klotho_release"
       - name: upload artifact
         uses: actions/upload-artifact@v3
         with:
