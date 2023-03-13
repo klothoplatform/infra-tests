@@ -55,7 +55,7 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
 
         config_base_path = os.path.join("apps", directory, "config", provider)
         files: list[str] = os.listdir(config_base_path)
-        files = files.sort()
+        files.sort()
 
         upgrade_path = False
         stack: auto.Stack = None
