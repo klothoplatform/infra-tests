@@ -110,7 +110,7 @@ class AppDeployer:
                 for stream in log_streams['logStreams']:
                     stream_name: str = stream['logStreamName']
                     events = self.get_log_events(log_group_name, stream_name)
-                    logger.write_file(f'{log_group_name.replace("/", "_")}-{stream_name.replace("/", "_")}', events)
+                    logger.write_file(stream_name.replace("/", "_"), events)
                     
 
     def get_log_events(self, log_group_name: str, stream: str):

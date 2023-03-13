@@ -23,7 +23,7 @@ class AppRunner:
         builder = self.builder
         deployer = self.deployer
         build = Builds.RELEASE if not upgrade else Builds.MAINLINE
-        sleep_time = 30 if stack is None else 30
+        sleep_time = 300 if stack is None else 30
 
         log.info(f'Building release application for path {path}')
         # Build the app with klotho's released version and configure the pulumi config
