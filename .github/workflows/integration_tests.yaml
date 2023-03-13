@@ -90,18 +90,14 @@ jobs:
           chmod +x $RUNNER_TEMP/klotho_main
       - name: run tests
         run: |
-          if [[ -z "${{ inputs.config_filenames }}" && ${{ inputs.no_destroy }} ]]
-          then
-            pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }} --no-destroy
-          elif [[ -z "${{ inputs.config_filenames }}" && !${{ inputs.no_destroy }} ]]
-            pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}
-          elif [[ -n "${{ inputs.config_filenames }}" && ${{ inputs.no_destroy }} ]]
-            pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}  --config-filenames ${{ inputs.config_filenames }} --no-destroy
-          elif [[ -n "${{ inputs.config_filenames }}" && !${{ inputs.no_destroy }} ]]
-            pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}  --config-filenames ${{ inputs.config_filenames }}
-          else
-            exit 1
+          OPTS='--directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}'
+          if [[ -n "${{ inputs.config_filenames }}"; then
+            OPTS="$OPTS --config-filenames ${{ inputs.config_filenames }}"
           fi
+          if [[ "${{ inputs.no_destroy }}" == true ]]; then
+            OPTS="$OPTS --no-destroy
+          fi
+          pipenv run tests $OPTS
         env: 
           KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
