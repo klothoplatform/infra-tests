@@ -54,7 +54,8 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
         app_runner = AppRunner(builder, deployer)
 
         config_base_path = os.path.join("apps", directory, "config", provider)
-        files: list[str] = os.listdir(config_base_path).sort()
+        files: list[str] = os.listdir(config_base_path)
+        files = files.sort()
 
         upgrade_path = False
         stack: auto.Stack = None
@@ -102,7 +103,7 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
     except Exception as e:
         log.error(f'Failed to configure app  run {e}')
         log.error(traceback.print_exc())
-        appResults.update({directory: AppResult(path, None, Result.FAILED, [], 0)})
+        appResults.update({directory: AppResult(directory, None, Result.FAILED, [], 0)})
 
             
 if __name__ == '__main__':
