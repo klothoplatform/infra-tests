@@ -92,9 +92,9 @@ jobs:
         run: |
           if [[ -z "${{ inputs.config_filenames }}" ]]
           then
-            pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }} --config-filenames ${{ inputs.config_filenames }} --no-destroy ${{ inputs.no_destroy }}
-          else
             pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }} --no-destroy ${{ inputs.no_destroy }}
+          else
+            pipenv run tests --directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }} --config-filenames ${{ inputs.config_filenames }} --no-destroy ${{ inputs.no_destroy }}
           fi
         env: 
           KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
