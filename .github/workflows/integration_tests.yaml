@@ -94,9 +94,10 @@ jobs:
           if [[ -n "${{ inputs.config_filenames }}" ]]; then
             OPTS="$OPTS --config-filenames ${{ inputs.config_filenames }}"
           fi
-          if [[ "${{ inputs.no_destroy }}" == true ]]; then
-            OPTS="$OPTS --no-destroy
+          if [[ "${{ inputs.no_destroy }}" == "true" ]]; then
+            OPTS="$OPTS --no-destroy"
           fi
+          echo "$OPTS"
           pipenv run tests $OPTS
         env: 
           KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
