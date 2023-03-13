@@ -41,7 +41,7 @@ jobs:
       - name: build
         run: |
           go generate ./...
-          go build ./cmd/klotho -o klotho_main
+          go build -o klotho_main ./cmd/klotho 
       - name: upload artifact
         uses: actions/upload-artifact@v3
         with:
