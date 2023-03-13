@@ -97,6 +97,8 @@ jobs:
           if [[ "${{ inputs.no_destroy }}" == "true" ]]; then
             OPTS="$OPTS --no-destroy"
           fi
+          ls -l
+          echo $KLOTHO_ID_TOKEN
           pipenv run tests $OPTS
         env: 
           KLOTHO_ID_TOKEN: ${{ secrets.KLOTHO_CREDS_ID_TOKEN }}
