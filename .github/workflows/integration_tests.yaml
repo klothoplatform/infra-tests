@@ -76,7 +76,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: klotho_release
-          path: ${{ runner.temp }}
       - name: install klotho release
         run: |
           chmod +x $RUNNER_TEMP/klotho_release
@@ -84,7 +83,6 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: klotho_main
-          path: ${{ runner.temp }}
       - name: install klotho main
         run: |
           chmod +x $RUNNER_TEMP/klotho_main
