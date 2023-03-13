@@ -91,7 +91,7 @@ jobs:
       - name: run tests
         run: |
           OPTS='--directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}'
-          if [[ -n "${{ inputs.config_filenames }}"; then
+          if [[ -n "${{ inputs.config_filenames }}" ]]; then
             OPTS="$OPTS --config-filenames ${{ inputs.config_filenames }}"
           fi
           if [[ "${{ inputs.no_destroy }}" == true ]]; then
