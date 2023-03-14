@@ -60,9 +60,9 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
         upgrade_path = False
         stack: auto.Stack = None
         step = 1
-        for file in files:
-            path = os.path.join(config_base_path, file)
-            try:
+        try:
+            for file in files:
+                path = os.path.join(config_base_path, file)
                 if not os.path.isfile(path):
                     log.debug(f'{path} is not a file. Skipping run.')
                     continue
@@ -90,17 +90,17 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
                 appResults.update({result_key: AppResult(path, Builds.MAINLINE, result, test_results, step)})
                 step += 1
 
-            except Exception as e:
-                log.error(e)
-                log.error(traceback.print_exc())
-                appResults.update({path: AppResult(path, None, result, test_results, step)})
-                step += 1
-            finally:
-                if stack is not None and not no_destroy:
-                    deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
-                    result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
-                    result_key = sanitize_result_key(f'{stack.name}-destroy')
-                    appResults.update({result_key: AppResult(path, None, Result.FAILED, [], step)})
+        except Exception as e:
+            log.error(e)
+            log.error(traceback.print_exc())
+            appResults.update({path: AppResult(path, None, result, test_results, step)})
+            step += 1
+        finally:
+            if stack is not None and not no_destroy:
+                deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
+                result = Result.SUCCESS if deploy_succeeded else Result.DESTROY_FAILED
+                result_key = sanitize_result_key(f'{stack.name}-destroy')
+                appResults.update({result_key: AppResult(path, None, Result.FAILED, [], step)})
     except Exception as e:
         log.error(f'Failed to configure app  run {e}')
         log.error(traceback.print_exc())
