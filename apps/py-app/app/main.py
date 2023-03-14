@@ -5,6 +5,7 @@ from fastapi import Body, FastAPI, UploadFile
 from app import persist
 from app.crossexec.taskcombiner import combine_tasks
 from starlette.responses import PlainTextResponse, JSONResponse
+from pydantic import BaseModel
 
 # @klotho::expose {
 #   id = "py-gateway-primary"
@@ -60,6 +61,20 @@ async def write_binary_file(path: str, file: UploadFile):
 async def write_binary_file(path: str, file: bytes = Body()):
     await persist.write_bytes(path, file)
 
-
 # router1.post("/test/persist-fs/write-file-public", upload.single("file"), persist.testWriteFilePublic);
 # router1.delete("/test/persist-fs/delete-file", persist.testDeleteFile);
+
+class Item(BaseModel):
+    key: str
+    value: str
+
+class CacheKey(BaseModel):
+    key: str
+
+@app.get("/test/persist-redis/redis-get-entry", response_class=JSONResponse)
+async def get_redis_entry(key: CacheKey):
+    return await persist.get_redis(key.key)
+
+@app.post("/test/persist-redis/redis-set-entry")
+async def set_redis_entry(item: Item):
+    return await persist.set_redis(item.key, item.value)

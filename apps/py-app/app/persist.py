@@ -10,7 +10,12 @@ import aiofiles as files
 from asyncio import StreamReader
 from fastapi import UploadFile
 from typing import Literal, Union
+import redis.asyncio as redis
 
+# @klotho::persist {
+#   id = "redis"
+# }
+redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 async def get_secret(binary: bool):
     async with secrets.open('secrets/secret.txt', mode=_mode('r', binary=binary)) as f:
@@ -45,3 +50,9 @@ def _mode(read_write: Literal['r', 'w'], binary: bool) -> Literal['r', 'rb', 'w'
     if binary:
         result += 'b'
     return result
+
+async def get_redis(key: str):
+    return await redis_client.get(key)
+
+async def set_redis(key: str, value: str):
+    return await redis_client.set(key, value)
