@@ -3,12 +3,27 @@ execution_units:
     type: eks
   executor-2:
     type: eks
+    pulumi_params:
+      nodeType: node
+      replicas: 1
+      nodeConstraints:
+        instanceType: c4.large
+        diskSize: 200
+      limits: 
+        cpu: 1
+        memory: 256
+      autoscalingConfig:
+        cpuUtilization: 100
+        memoryUtilization: 100
+        maxReplicas: 4
   task-1:
     type: lambda
   task-2:
     type: ecs
   task-3:
     type: eks
+    helm_chart_options:
+      install: true
 static_unit:
   static-unit:
     content_delivery_network:

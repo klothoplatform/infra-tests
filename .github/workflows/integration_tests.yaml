@@ -29,6 +29,12 @@ on:
         required: false
         type: boolean
         default: false
+  
+env:
+  PROVIDER: aws
+  DIRECTORIES: ts-app,go-app,py-app
+  REGION: eu-west-1
+
     
 name: run integration tests
 jobs:
@@ -73,7 +79,11 @@ jobs:
           chmod +x klotho_main
       - name: run tests
         run: |
-          OPTS='--directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}'
+          if [[ ${{ github.event_name == 'workflow_dispatch' }} == true ]]; then
+            OPTS='--directories ${{ inputs.directories }} --region ${{ inputs.region }} --provider ${{ inputs.provider }}'
+          else
+            OPTS='--directories ${{ env.DIRECTORIES }} --region ${{ env.REGION }} --provider ${{ env.PROVIDER }}'
+          fi
           if [[ -n "${{ inputs.config_filenames }}" ]]; then
             OPTS="$OPTS --config-filenames ${{ inputs.config_filenames }}"
           fi

@@ -94,6 +94,7 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
                 log.error(e)
                 log.error(traceback.print_exc())
                 appResults.update({path: AppResult(path, None, result, test_results, step)})
+                step += 1
             finally:
                 if stack is not None and not no_destroy:
                     deploy_succeeded = deployer.destroy_and_remove_stack(builder.output_dir)
