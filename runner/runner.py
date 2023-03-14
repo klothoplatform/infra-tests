@@ -78,7 +78,7 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
                 log.info(f'Running on path {path}')
                 if not upgrade_path:
                     result_key = sanitize_result_key(f'{path}-{Builds.RELEASE}')
-                    stack, result, test_results = app_runner.deploy_and_test(run_id, path, upgrade_tests, stack)
+                    stack, result, test_results = app_runner.deploy_and_test(run_id, path, Builds.RELEASE, upgrade_tests, stack)
                     appResults.update({result_key: AppResult(path, Builds.RELEASE, result, test_results, step)})
                     step += 1
                     upgrade_tests = True
@@ -86,7 +86,7 @@ def run_single(directory: str, region: str, provider: str, appResults: dict[Type
                     
                 # Build the app with klotho's mainline version and configure the pulumi config
                 result_key = sanitize_result_key(f'{path}-{Builds.MAINLINE}')
-                stack, result, test_results = app_runner.deploy_and_test(run_id, path, upgrade_tests, stack)
+                stack, result, test_results = app_runner.deploy_and_test(run_id, path, Builds.MAINLINE, upgrade_tests, stack)
                 appResults.update({result_key: AppResult(path, Builds.MAINLINE, result, test_results, step)})
                 step += 1
 

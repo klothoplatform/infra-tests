@@ -19,10 +19,9 @@ class AppRunner:
         self.builder = builder
         self.deployer = deployer
 
-    def deploy_and_test(self, run_id: str, path: str, upgrade: bool, stack: auto.Stack) -> Tuple[auto.Stack, Result, List[TestResult]]:
+    def deploy_and_test(self, run_id: str, path: str, build, upgrade_tests: bool, stack: auto.Stack) -> Tuple[auto.Stack, Result, List[TestResult]]:
         builder = self.builder
         deployer = self.deployer
-        build = Builds.RELEASE if not upgrade else Builds.MAINLINE
         sleep_time = 300 if stack is None else 30
 
         log.info(f'Building release application for path {path}')
@@ -46,7 +45,7 @@ class AppRunner:
         log.info(f'Sleeping for {sleep_time} seconds while stack settles.')
         time.sleep(sleep_time)
 
-        test_runner = TestRunner(builder.app_name, url, upgrade, [])
+        test_runner = TestRunner(builder.app_name, url, upgrade_tests, [])
         test_results = test_runner.run()
         final_result = Result.SUCCESS
         for test_result in test_results:
