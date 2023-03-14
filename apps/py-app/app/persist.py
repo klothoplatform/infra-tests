@@ -7,9 +7,9 @@ import aiofiles as secrets
 #   id = "files"
 # }
 import aiofiles as files
-from asyncio import StreamReader
 from fastapi import UploadFile
-from typing import Literal, Union
+from typing import Literal
+import os
 import redis.asyncio as redis
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
@@ -23,6 +23,7 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=T
 #   id = "sqlAlchemy"
 # }
 engine = create_engine("sqlite://")
+from typing import Literal
 
 
 async def get_secret(binary: bool):
@@ -37,6 +38,7 @@ async def read_file(path: str, binary: bool):
 
 
 async def write_file(path: str, contents: UploadFile, binary: bool):
+    await _create_path(path)
     async with files.open(path, mode=_mode('w', binary=binary)) as f:
         file_data = await contents.read()
         if not binary:
@@ -45,6 +47,7 @@ async def write_file(path: str, contents: UploadFile, binary: bool):
 
 
 async def write_bytes(path: str, contents: bytes):
+    await _create_path(path)
     async with files.open(path, mode=_mode('w', binary=True)) as f:
         await f.write(contents)
 
@@ -89,3 +92,10 @@ async def set_orm(key: str, value: str):
         kv = OrmKV(key=key, value=value)
         session.add(kv)
         session.commit()
+
+
+async def _create_path(path: str):
+    dir_name = os.path.dirname(path)
+    if dir_name:
+        await files.os.makedirs(dir_name, exist_ok=True)
+    # return urllib.parse.quote(path, safe='')
