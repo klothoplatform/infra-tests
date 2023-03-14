@@ -1,10 +1,10 @@
 # @klotho::execution_unit {
 #   id = "main"
 # }
-import os.path
 
 from fastapi import Body, FastAPI, Response, UploadFile, HTTPException
-from app.persist import get_secret, read_file, write_file, write_bytes
+from app.persist import read_file, write_file, write_bytes
+from app.persist_secret import get_secret
 from app.crossexec.taskcombiner import combine_tasks
 from starlette.responses import PlainTextResponse, JSONResponse
 from pydantic import BaseModel

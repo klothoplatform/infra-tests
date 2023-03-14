@@ -134,7 +134,8 @@ def test_delete_files():
 @pytest.mark.post_upgrade
 def test_read_text_file_after_upgrade():
     response = session.get(resolve_primary_gw_url("test/persist-fs/read-text-file"),
-                            params={"path": fixed_text_upload_path})
+                           params={"path": fixed_text_upload_path})
+    assert response.status_code == 200
     assert response.text == get_file_content("resources/plaintext.txt").decode("utf-8")
 
 

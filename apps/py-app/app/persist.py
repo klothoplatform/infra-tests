@@ -1,9 +1,4 @@
 # @klotho::persist {
-#   id = "pysecret"
-#   secret = true
-# }
-import aiofiles as secrets
-# @klotho::persist {
 #   id = "files"
 # }
 import aiofiles as files
@@ -30,15 +25,17 @@ async def get_secret(binary: bool):
     async with secrets.open('secrets/secret.txt', mode=_mode('r', binary=binary)) as f:
         contents = await f.read()
         return contents
+import urllib.parse
 
 
 async def read_file(path: str, binary: bool):
+    path = _escape_path(path)
     async with files.open(path, mode=_mode('r', binary=binary)) as f:
         return await f.read()
 
 
 async def write_file(path: str, contents: UploadFile, binary: bool):
-    await _create_path(path)
+    path = _escape_path(path)
     async with files.open(path, mode=_mode('w', binary=binary)) as f:
         file_data = await contents.read()
         if not binary:
@@ -47,12 +44,13 @@ async def write_file(path: str, contents: UploadFile, binary: bool):
 
 
 async def write_bytes(path: str, contents: bytes):
-    await _create_path(path)
+    path = _escape_path(path)
     async with files.open(path, mode=_mode('w', binary=True)) as f:
         await f.write(contents)
 
 
 async def delete_file(path: str):
+    path = _escape_path(path)
     await files.os.remove(path)
 
 
@@ -94,8 +92,6 @@ async def set_orm(key: str, value: str):
         session.commit()
 
 
-async def _create_path(path: str):
-    dir_name = os.path.dirname(path)
-    if dir_name:
-        await files.os.makedirs(dir_name, exist_ok=True)
-    # return urllib.parse.quote(path, safe='')
+def _escape_path(path: str) -> str:
+    # see klothoplatform/klotho#360
+    return urllib.parse.quote(path, safe='')
