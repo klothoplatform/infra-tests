@@ -1,7 +1,10 @@
 # @klotho::execution_unit {
 #   id = "main"
 # }
-from fastapi import Body, FastAPI, UploadFile, HTTPException
+import os.path
+
+import aiofiles.os
+from fastapi import Body, FastAPI, Response, UploadFile, HTTPException
 from app import persist
 from app.crossexec.taskcombiner import combine_tasks
 from starlette.responses import PlainTextResponse, JSONResponse
@@ -39,30 +42,32 @@ async def read_text_file(path: str):
 
 @app.post("/test/persist-fs/write-text-file")
 async def write_text_file(path: str, file: UploadFile):
-    await persist.write_file(path, file, binary=False)
+    await persist.write_file(await _quote_path(path), file, binary=False)
 
 
-@app.get("/test/persist-fs/read-binary-file", response_class=PlainTextResponse)
-async def read_text_file(path: str):
-    return await persist.read_file(path, binary=True)
-
-
-@app.get("/test/persist-fs/read-binary-file", response_class=PlainTextResponse)
-async def read_text_file(path: str):
-    return await persist.read_file(path, binary=True)
+@app.get("/test/persist-fs/read-binary-file")
+async def read_binary_file(path: str):
+    content = await persist.read_file(path, binary=True)
+    return Response(content=content, media_type="application/octet-stream")
 
 
 @app.post("/test/persist-fs/write-binary-file-multipart")
 async def write_binary_file(path: str, file: UploadFile):
-    await persist.write_file(path, file, binary=True)
+    await persist.write_file(await _quote_path(path), file, binary=True)
 
 
 @app.post("/test/persist-fs/write-binary-file-direct")
 async def write_binary_file(path: str, file: bytes = Body()):
-    await persist.write_bytes(path, file)
+    await persist.write_bytes(await _quote_path(path), file)
 
-# router1.post("/test/persist-fs/write-file-public", upload.single("file"), persist.testWriteFilePublic);
-# router1.delete("/test/persist-fs/delete-file", persist.testDeleteFile);
+async def _quote_path(path: str):
+    dir_name = os.path.dirname(path)
+    if dir_name:
+        print(f"######################## making path: {dir_name}")
+        await aiofiles.os.makedirs(dir_name, exist_ok=True)
+    print(f"######################## using path: {path}")
+    return path
+    # return urllib.parse.quote(path, safe='')
 
 class Item(BaseModel):
     key: str

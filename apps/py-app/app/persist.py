@@ -24,6 +24,7 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=T
 # }
 engine = create_engine("sqlite://")
 
+
 async def get_secret(binary: bool):
     async with secrets.open('secrets/secret.txt', mode=_mode('r', binary=binary)) as f:
         contents = await f.read()
@@ -56,6 +57,7 @@ def _mode(read_write: Literal['r', 'w'], binary: bool) -> Literal['r', 'rb', 'w'
     result = read_write
     if binary:
         result += 'b'
+    print(f'mode: {result}')
     return result
 
 async def get_redis(key: str):
