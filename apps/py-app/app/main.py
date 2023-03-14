@@ -1,7 +1,7 @@
 # @klotho::execution_unit {
 #   id = "main"
 # }
-from fastapi import Body, FastAPI, UploadFile
+from fastapi import Body, FastAPI, UploadFile, HTTPException
 from app import persist
 from app.crossexec.taskcombiner import combine_tasks
 from starlette.responses import PlainTextResponse, JSONResponse
@@ -73,8 +73,22 @@ class CacheKey(BaseModel):
 
 @app.get("/test/persist-redis/redis-get-entry", response_class=JSONResponse)
 async def get_redis_entry(key: CacheKey):
-    return await persist.get_redis(key.key)
+    v = await persist.get_redis(key.key)
+    if v is None:
+        raise HTTPException(status_code=404, detail=f"{key.key} not found")
+    return v
 
 @app.post("/test/persist-redis/redis-set-entry")
 async def set_redis_entry(item: Item):
     return await persist.set_redis(item.key, item.value)
+
+@app.get("/test/persist-orm/read-kv-entry")
+async def get_orm_entry(key: CacheKey):
+    v = await persist.get_orm(key.key)
+    if v is None:
+        raise HTTPException(status_code=404, detail=f"{key.key} not found")
+    return v
+
+@app.post("/test/persist-orm/write-kv-entry")
+async def set_orm_entry(item: Item):
+    return await persist.set_orm(item.key, item.value)
