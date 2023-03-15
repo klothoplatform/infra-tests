@@ -3,7 +3,7 @@
 # }
 
 from fastapi import Body, FastAPI, Response, UploadFile, HTTPException
-from app.persist import read_file, write_file, write_bytes
+from app.persist import read_file, write_file, write_bytes, get_orm, get_redis, set_orm, set_redis
 from app.persist_secret import get_secret
 from app.crossexec.taskcombiner import combine_tasks
 from starlette.responses import PlainTextResponse, JSONResponse
@@ -59,31 +59,37 @@ async def write_binary_file(path: str, file: UploadFile):
 async def write_binary_file(path: str, file: bytes = Body()):
     await write_bytes(path, file)
 
+
 class Item(BaseModel):
     key: str
     value: str
 
+
 class CacheKey(BaseModel):
     key: str
 
+
 @app.get("/test/persist-redis/redis-get-entry", response_class=JSONResponse)
 async def get_redis_entry(key: CacheKey):
-    v = await persist.get_redis(key.key)
+    v = await get_redis(key.key)
     if v is None:
         raise HTTPException(status_code=404, detail=f"{key.key} not found")
     return v
+
 
 @app.post("/test/persist-redis/redis-set-entry")
 async def set_redis_entry(item: Item):
-    return await persist.set_redis(item.key, item.value)
+    return await set_redis(item.key, item.value)
+
 
 @app.get("/test/persist-orm/read-kv-entry")
 async def get_orm_entry(key: CacheKey):
-    v = await persist.get_orm(key.key)
+    v = await get_orm(key.key)
     if v is None:
         raise HTTPException(status_code=404, detail=f"{key.key} not found")
     return v
 
+
 @app.post("/test/persist-orm/write-kv-entry")
 async def set_orm_entry(item: Item):
-    return await persist.set_orm(item.key, item.value)
+    return await set_orm(item.key, item.value)

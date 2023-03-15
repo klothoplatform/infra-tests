@@ -11,6 +11,6 @@ from app.crossexec.task3 import task_sync_3
 async def combine_tasks():
     return [
         await task_async_1("task-1"),
-        task_sync_2("task-2"),
-        task_sync_3("task-3"),
+        await task_sync_2("task-2"),
+        await task_sync_3("task-3"),
     ]
