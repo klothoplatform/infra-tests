@@ -3,3 +3,5 @@ default:
     - ./secrets/secret.txt
   pulumi-config:
     config-pysecret-FilePath: ./secrets/secret.txt
+    sqlalchemy_username: myuser
+    sqlalchemy_password: password1234
