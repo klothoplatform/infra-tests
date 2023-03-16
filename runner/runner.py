@@ -42,7 +42,7 @@ def run(directories, region, provider, config_filenames: str, no_destroy):
             result_code = 1
         log.info(f'Result for {key}: {result.result.value}')
 
-        for test_result in result.test_results:
+        for test_result in (result.test_results or []):
             for report in test_result.reports:
                 test_case: TestCase
                 for test_case in report:
