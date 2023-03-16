@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 from app_util.builder import Builds
+from junitparser import TestSuite
+
 
 class Result(Enum):
     STARTED = "STARTED"
@@ -11,11 +13,13 @@ class Result(Enum):
     DEPLOYMENT_FAILED = "DEPLOYMENT_FAILED"
     DESTROY_FAILED = "DESTROY_FAILED"
 
+
 class TestResult:
-    def __init__(self, name: str, result: Result, reason: str):
+    def __init__(self, name: str, result: Result, reason: str, reports: list[TestSuite]):
         self.name = name
         self.result = result
         self.reason = reason
+        self.reports = reports
 
     def to_string(self) -> str:
         return f'name: {self.name}\n\tresult: {self.result}\n\reason: {self.reason}'
@@ -23,6 +27,7 @@ class TestResult:
 
 def sanitize_result_key(key: str) -> str:
     return key.replace('/','_').replace('.','-')
+
 
 class AppResult:
     def __init__(self, directory: str, build: Builds, result: Result, test_results: List[TestResult], step: int):
@@ -44,7 +49,7 @@ class AppResult:
                 did_any_test_fail = True
 
         if self.result is Result.STARTED and not did_any_test_fail:
-            self.Result = Result.SUCCESS
+            self.result = Result.SUCCESS
 
     def to_string(self) -> str:
         return f'directory: {self.directory}, build: {self.build}\n\tstep: {self.step}, result: {self.result}\n'

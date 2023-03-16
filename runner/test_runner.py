@@ -2,6 +2,8 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
+from junitparser import JUnitXml, TestSuite
 
 from util.result import TestResult, Result
 
@@ -29,15 +31,27 @@ class TestRunner:
             "pytest"
         ])
 
+        report_file = tempfile.NamedTemporaryFile()
+
         upgrade_marker = "not post_upgrade" if self.upgrade_path is False else "not pre_upgrade"
         disable_tests = f"--ignore '{self.disable_tests}'" if self.disable_tests != "" else ""
         app_marker = re.sub("[\\s-]", "_", self.app_name.lower())
         markers = app_marker
         markers = add_marker_subexpression(markers, upgrade_marker)
         log.info(f'Running with markers {markers}')
-        args = [command, "-m", f'"{markers}"', disable_tests]
+        args = [command, "-m", f'"{markers}"', disable_tests, f'--junit-xml={report_file.name}']
         log.info(" ".join(args))
         result: subprocess.CompletedProcess[bytes] = subprocess.run(" ".join(args), capture_output=True, shell=True, text=True)
+
+        report: list[TestSuite] = []
+        try:
+            parsed = JUnitXml.fromfile(report_file.name)
+            if isinstance(parsed, JUnitXml):
+                report = [s for s in parsed]
+            else:
+                report = [parsed]
+        except Exception:
+            log.warning(f"Couldn't read report file at {report_file.name}")
 
         status = None
         out = str(result.stdout)
@@ -54,7 +68,7 @@ class TestRunner:
             status = Result.TESTS_FAILED
         else:
             status = Result.FAILED
-        return [TestResult(self.app_name, status, f"stdout:\n{out}\nstderr:{err}")]
+        return [TestResult(self.app_name, status, f"stdout:\n{out}\nstderr:{err}", report)]
 
 
 def add_marker_subexpression(markers: str, subexpr: str) -> str:
