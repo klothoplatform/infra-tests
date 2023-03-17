@@ -16,6 +16,7 @@ plaintext_resource_path = 'resources/plaintext.txt'
 
 
 @pytest.mark.py_app
+@pytest.mark.py_app_tiny
 @pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
