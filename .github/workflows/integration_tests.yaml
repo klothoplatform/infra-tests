@@ -44,7 +44,7 @@ jobs:
       - name: checkout klotho
         uses: actions/checkout@v3
         with:
-          repository: klothoplatform/klotho
+          repository: klothoplatform/klotho-pro
       - uses: actions/setup-go@v3
         with:
           go-version: '1.19.6'

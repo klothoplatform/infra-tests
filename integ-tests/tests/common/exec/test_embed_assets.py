@@ -9,7 +9,7 @@ embedded_text_file = "embedded-assets/embedded-text.txt"
 excluded_text_file = "embedded-assets/excluded-text.txt"
 
 @pytest.mark.xfail(condition=app_name=="go-app" and provider == "aws",
-                   reason="multipart mime types are not currently treated as binary content in the AWS API gateway")
+                   reason="https://github.com/klothoplatform/klotho/issues/341")
 @pytest.mark.cs_app
 @pytest.mark.ts_app
 @pytest.mark.go_app

@@ -22,11 +22,13 @@ class AppDeployer:
         self.configure_tags()
         self.configure_region()
         self.configure_pulumi_app(cfg)
-        try:
-            log.info(f'Previewing stack {self.stack.name}')
-            self.stack.preview(on_output=self.pulumi_logger.log)
-        except Exception as e:
-            return ""
+        for i in range(0,5):
+            try:
+                log.info(f'Previewing stack {self.stack.name}')
+                self.stack.preview(on_output=self.pulumi_logger.log)
+            except Exception as e:
+                if i == 4:
+                    return "" 
         for i in range(0,5):
             try:
                 log.info(f'Deploying stack {self.stack.name} to region {self.region}, attempt #{i}')

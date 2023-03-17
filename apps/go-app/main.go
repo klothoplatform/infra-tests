@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"net/http"
 
@@ -15,6 +16,9 @@ import (
  * }
  */
 
+//go:embed embedded-assets/embedded-text.txt
+var embeddedFile embed.FS
+
 func main() {
 
 	// @klotho::embed_assets {
@@ -23,12 +27,11 @@ func main() {
 	// exclude = ["**/excluded-text.txt"]
 	// }
 	//
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello!"))
-	})
+	r.Get("/test/expose/handles-path-params/{param}", tests.TestExposePathParam())
 
 	r.Get("/test/persist-secret/read-text-secret", tests.TestReadTextSecret())
 	r.Get("/test/persist-secret/read-binary-secret", tests.TestReadBinarySecret())

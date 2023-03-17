@@ -38,7 +38,7 @@ class AppRunner:
 
         api_url: str = deployer.configure_and_deploy(builder.cfg)
         if api_url == "":
-            return [stack, Result.COMPILATION_FAILED, None]
+            return [stack, Result.DEPLOYMENT_FAILED, None]
 
         url = format_url(api_url)
 
