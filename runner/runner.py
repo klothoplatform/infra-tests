@@ -38,7 +38,7 @@ def run(directories, region, provider, config_filenames: str, no_destroy):
     # pool.shutdown(wait=True)
 
     for key, result in app_results.items():
-        if result.result == Result.SUCCESS:
+        if result.result != Result.SUCCESS:
             result_code = 1
         log.info(f'Result for {key}: {result.result.value}')
 
@@ -161,7 +161,7 @@ def _print_test_case_failure(test_case: TestCase):
                     # Common case: the message is "AssertionError", and oneline is "AssertionError: foo"
                     error_oneline = error_oneline[len(loc["message"]):]  # trim
                     error_oneline = error_oneline.lstrip(": ")
-                print(f'::error file={loc["file"]},line={loc["line"]},title={loc["message"]}::{error_oneline}')
+                print(f'::error file={loc["file"]},line={loc["line"]},title={loc["message"]} in {test_case.name}::{error_oneline}')
             else:
                 if not error_oneline:
                     error_oneline = "error"
