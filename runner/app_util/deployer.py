@@ -1,7 +1,7 @@
 import subprocess
 from pulumi import automation as auto
 from app_util.config import TestConfig
-from util.logging import PulumiLogging, ServiceLogging
+from util.logging import PulumiLogging, ServiceLogging, grouped_logging
 import logging
 import os
 import boto3
@@ -19,26 +19,29 @@ class AppDeployer:
         self.stack = stack
 
     def configure_and_deploy(self, cfg: TestConfig) -> str:
-        self.configure_tags()
-        self.configure_region()
-        self.configure_pulumi_app(cfg)
+        with grouped_logging("Configuring stack"):
+            self.configure_tags()
+            self.configure_region()
+            self.configure_pulumi_app(cfg)
         for i in range(0,5):
             try:
-                log.info(f'Previewing stack {self.stack.name}')
-                self.stack.preview(on_output=self.pulumi_logger.log)
+                with grouped_logging(f'Previewing stack {self.stack.name}'):
+                    log.info(f'Previewing stack {self.stack.name}')
+                    self.stack.preview(on_output=self.pulumi_logger.log)
             except Exception as e:
                 if i == 4:
                     return "" 
-        for i in range(0,5):
+        for i in range(0, 5):
             try:
-                log.info(f'Deploying stack {self.stack.name} to region {self.region}, attempt #{i}')
-                url = self.deploy_app()
-                log.info(f'Deployed stack, {self.stack.name}, successfully. Got API Url: {url}')
-                return url
+                with grouped_logging(f'Deploying stack {self.stack.name} to region {self.region}, attempt #{i}'):
+                    url = self.deploy_app()
+                    log.info(f'Deployed stack, {self.stack.name}, successfully. Got API Url: {url}')
+                    return url
             except Exception as e:
-                log.error(f'Deployment of stack, {self.stack.name}, failed.')
-                log.info(f'Refreshing stack {self.stack.name}')
-                self.stack.refresh()
+                with grouped_logging(f'Deployment of stack, {self.stack.name}, failed.'):
+                    log.error(f'Deployment of stack, {self.stack.name}, failed.')
+                    log.info(f'Refreshing stack {self.stack.name}')
+                    self.stack.refresh()
         return ""
 
     # deploy_app deploys the stack and returns the first apiUrl expecting it to be the intended endpoint for tests
@@ -69,19 +72,20 @@ class AppDeployer:
     def destroy_and_remove_stack(self, output_dir: str) -> bool:
          for i in range(0,5):
             try:
-                log.info(f'Destroying stack {self.stack.name}, attempt #{i}')
-                self.pulumi_logger.set_file_name(f'destroy.txt')
-                self.stack.destroy(on_output=self.pulumi_logger.log)
-                log.info(f'Removing stack {self.stack.name}')
-                command = f'cd {output_dir}; pulumi stack rm -s {self.stack.name} -y'
-                result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
-                result.check_returncode()
-                return True  
+                with grouped_logging(f'Destroying stack {self.stack.name}, attempt #{i}'):
+                    self.pulumi_logger.set_file_name(f'destroy.txt')
+                    self.stack.destroy(on_output=self.pulumi_logger.log)
+                    log.info(f'Removing stack {self.stack.name}')
+                    command = f'cd {output_dir}; pulumi stack rm -s {self.stack.name} -y'
+                    result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
+                    result.check_returncode()
+                    return True
             except Exception as e:
-                log.error(e)
-                log.info(f'Refreshing stack {self.stack.name}')
-                self.stack.refresh()
-                return False
+                with grouped_logging("Destroy failed"):
+                    log.error(e)
+                    log.info(f'Refreshing stack {self.stack.name}')
+                    self.stack.refresh()
+                    return False
             
     def download_logs(self, logger: ServiceLogging):
         deployment = self.stack.export_stack()
