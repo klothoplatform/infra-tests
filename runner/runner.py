@@ -140,32 +140,39 @@ def _print_test_case_failure(test_case: TestCase):
     # │test_file.py:6: AssertionError                │
     # ╰──────────────────────────────────────────────╯
     for tc_result in test_case.result:
-        print(f'FAILURE: {test_case.name}:')
-        result_line: str = ''
-        should_output = False
+        output_lines = [f'FAILURE: {test_case.name}:']
         error_oneline: str = ''
+        should_output = False
+        result_line: str = ''
         for result_line in tc_result.text.split('\n'):
             if not should_output:
                 should_output = result_line.startswith(">")
             if (not error_oneline) and result_line.startswith("E"):
                 error_oneline = result_line[1:].strip()
             if should_output and result_line.strip():
-                print('│' + result_line)
+                output_lines.append('│' + result_line)
 
         # GITHUB_ACTIONS is "true" when running in an action. In that case, print out an GH error command
         if os.environ.get('GITHUB_ACTIONS'):
+            gh_err_line: str
             last_line_match = re.match('(?P<file>[^:]+):(?P<line>\\d+): (?P<message>.*)', result_line)
+            # look for "test_file.py:6: AssertionError" on that last line
             if last_line_match:
                 loc = last_line_match.groupdict()
                 if error_oneline.startswith(loc["message"]):
                     # Common case: the message is "AssertionError", and oneline is "AssertionError: foo"
                     error_oneline = error_oneline[len(loc["message"]):]  # trim
                     error_oneline = error_oneline.lstrip(": ")
-                print(f'::error file={loc["file"]},line={loc["line"]},title={loc["message"]} in {test_case.name}::{error_oneline}')
+                gh_err_line = f'::error title={loc["message"]} in {test_case.name}::{loc["file"]}#{loc["line"]}: ' \
+                              f' {error_oneline}'
             else:
                 if not error_oneline:
                     error_oneline = "error"
-                print(f'::error title=Failure::{error_oneline}')
+                gh_err_line = f'::error title=Failure::{error_oneline}'
+            # insert the line right after the first "FAILURE: {test_case.name}" line
+            output_lines.insert(1, gh_err_line)
+        for line in output_lines:
+            print(line)
 
             
 if __name__ == '__main__':
