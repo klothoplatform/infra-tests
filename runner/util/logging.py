@@ -63,6 +63,9 @@ def log_milestone(level: Literal['notice', 'warning', 'error'], title: str, mess
         msg += message
 
 
+_grouped_logging_output = print
+
+
 @contextmanager
 def grouped_logging(title: str):
     # GH doesn't support hierarchical, sub-groupings of grouped logs. So instead, we'll use " ❱ " to set up the
@@ -75,20 +78,21 @@ def grouped_logging(title: str):
         # The bool always starts out as true
         thread_locals.grouped_logs = []
 
-    if is_github() and thread_locals.grouped_logs:
-        print('::endgroup::')
+    if is_github() and thread_locals.grouped_logs and thread_locals.grouped_logs[-1][1]:
+        _grouped_logging_output('::endgroup::')
         thread_locals.grouped_logs[-1] = (thread_locals.grouped_logs[-1][0], False)  # doesn't need closing anymore
 
     thread_locals.grouped_logs.append((title, True))
     prefix = '::group::' if is_github() else '### '
-    print(f'{prefix}{" ❱ ".join([title for (title, closed) in thread_locals.grouped_logs])}')
+    _grouped_logging_output(f'{prefix}{" ❱ ".join([title for (title, closed) in thread_locals.grouped_logs])}')
 
-    yield
-
-    if is_github():
-        _, needs_closing = thread_locals.grouped_logs.pop()
-        if needs_closing:
-            print('::endgroup::')
+    try:
+        yield
+    finally:
+        if is_github():
+            _, needs_closing = thread_locals.grouped_logs.pop()
+            if needs_closing:
+                _grouped_logging_output('::endgroup::')
 
 
 class PulumiLogging:

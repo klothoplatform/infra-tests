@@ -22,3 +22,4 @@ python_version = "3.10"
 
 [scripts]
 tests = "python3.10 runner/runner.py"
+runner_unit_tests = "python3.10 -m pytest runner_unit_tests"
