@@ -24,13 +24,14 @@ class AppDeployer:
             self.configure_region()
             self.configure_pulumi_app(cfg)
         for i in range(0,5):
-            try:
-                with grouped_logging(f'Previewing stack {self.stack.name}'):
-                    log.info(f'Previewing stack {self.stack.name}')
+            with grouped_logging(f'Previewing stack {self.stack.name}, attempt #{i}'):
+                try:
                     self.stack.preview(on_output=self.pulumi_logger.log)
-            except Exception as e:
-                if i == 4:
-                    return "" 
+                    break
+                except Exception as e:
+                    log.error(f'Failed to preview stack', exc_info=True)
+                    if i == 4:
+                        return ""
         for i in range(0, 5):
             try:
                 with grouped_logging(f'Deploying stack {self.stack.name} to region {self.region}, attempt #{i}'):
@@ -39,7 +40,7 @@ class AppDeployer:
                     return url
             except Exception as e:
                 with grouped_logging(f'Deployment of stack, {self.stack.name}, failed.'):
-                    log.error(f'Deployment of stack, {self.stack.name}, failed.')
+                    log.error(f'Deployment of stack, {self.stack.name}, failed.', exc_info=True)
                     log.info(f'Refreshing stack {self.stack.name}')
                     self.stack.refresh()
         return ""
