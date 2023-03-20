@@ -39,3 +39,13 @@ Example:
 $ pipenv shell
 $ python3.10 runner/runner.py --directories ts-app --region us-west-1 --provider aws
 ```
+
+# Developing infra tests
+
+## Runner unit tests
+
+The `runner` module itself has a set of unit tests. To run them:
+
+```bash
+pipenv run runner_unit_tests
+```
