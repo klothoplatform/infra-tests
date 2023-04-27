@@ -1,3 +1,6 @@
 execution_units:
   executor: 
     type: ecs
+config:
+  mySecret:
+    path: ./secrets/secret.txt

@@ -1,3 +1,6 @@
 exposed:
   go-gateway-primary:
     type: alb
+config:
+  mySecret:
+    path: ./secrets/secret.txt

@@ -8,7 +8,7 @@ execution_units:
   task-2:
     type: ecs
   task-3:
-    type: eks
+    type: kubernetes
 static_unit:
   static-unit:
     content_delivery_network:

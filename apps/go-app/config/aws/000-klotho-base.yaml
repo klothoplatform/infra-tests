@@ -1,2 +1,5 @@
 # Compile with default settings
 execution_units:
+config:
+  mySecret:
+    path: ./secrets/secret.txt

@@ -1,9 +1,7 @@
 import express = require("express");
-import {testGetEmbeddedAsset, testListEmbeddedAssets} from "./tests/embed-assets-tests";
+import {testGetEmbeddedAsset, debugListEmbeddedAssets} from "./tests/embed-assets-tests";
 import {
-    testGetRedisClusterEntry,
     testGetRedisEntry,
-    testSetRedisClusterEntry,
     testSetRedisEntry
 } from "./tests/persist/redis-tests";
 
@@ -13,8 +11,6 @@ import {
  * }
  */
 
-// TODO: remove this separator after klotho-history/#321 is implemented
-const separator = undefined;
 // @klotho::embed_assets {
 //  id = "embedded-assets"
 //  include = ["/embedded-assets/**/*.txt"]
@@ -26,8 +22,10 @@ export const router2 = express.Router();
 
 router2.get("/test/persist-redis/redis-get-entry", testGetRedisEntry);
 router2.post("/test/persist-redis/redis-set-entry", testSetRedisEntry);
-router2.get("/test/persist-redis/redis-cluster-get-entry", testGetRedisClusterEntry);
-router2.post("/test/persist-redis/redis-cluster-set-entry", testSetRedisClusterEntry);
+
+// TODO: uncomment redis cluster tests once supported by IFC2
+// router2.get("/test/persist-redis/redis-cluster-get-entry", testGetRedisClusterEntry);
+// router2.post("/test/persist-redis/redis-cluster-set-entry", testSetRedisClusterEntry);
 
 router2.get("/test/embed-assets/get-asset", testGetEmbeddedAsset);
-router2.get("/test/embed-assets/list-assets", testListEmbeddedAssets);
+router2.get("/debug/embed-assets/list-assets", debugListEmbeddedAssets);

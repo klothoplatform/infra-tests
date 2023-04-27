@@ -18,7 +18,7 @@ app = FastAPI()
 
 @app.get("/test/exec/execute-cross-exec-tasks", response_class=JSONResponse)
 async def get_cross_exec_tasks():
-    return await combine_tasks()
+    return JSONResponse(content=await combine_tasks())
 
 
 # TODO @app.get("/test/exec/execute-custom-dockerfile", ...)
@@ -83,10 +83,10 @@ async def set_redis_entry(item: Item):
 
 
 @app.get("/test/persist-orm/read-kv-entry")
-async def get_orm_entry(key: CacheKey):
-    v = await get_orm(key.key)
+async def get_orm_entry(key: str):
+    v = await get_orm(key)
     if v is None:
-        raise HTTPException(status_code=404, detail=f"{key.key} not found")
+        raise HTTPException(status_code=404, detail=f"{key} not found")
     return v
 
 

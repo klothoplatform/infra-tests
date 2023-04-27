@@ -1,7 +1,7 @@
 import {createCluster} from 'redis';
 
 /**
- * @klotho::persist {
+ * @klotho:disabled::persist {
  *   id = "redis-cluster"
  * }
  */
