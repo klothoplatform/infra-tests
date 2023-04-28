@@ -11,9 +11,9 @@ log = logging.getLogger("TestRunner")
 
 
 class TestRunner:
-    def __init__(self, app_name, api_endpoint, upgrade_path, disable_tests, provider="aws"):
+    def __init__(self, app_name, outputs, upgrade_path, disable_tests, provider="aws"):
         self.app_name: str = app_name
-        self.api_endpoint: str = api_endpoint
+        self.outputs: dict[str, str] = outputs
         self.upgrade_path: bool = upgrade_path
         self.disable_tests: str = disable_tests if disable_tests is not None else ""
         self.provider = "unknown" if provider is None else provider
@@ -24,7 +24,8 @@ class TestRunner:
         log.info(f'Disabled tests: {self.disable_tests}')
         command = " ".join([
             "cd integ-tests;",
-            f'API_URL="{self.api_endpoint}"',
+            f'API_URL="{self.outputs.get("api_url")}"',
+            f'FRONTEND_URL="{self.outputs.get("frontend_url")}"',
             f'APP_NAME="{self.app_name}"',
             f'PROVIDER="{self.provider}"',
             f'PYTHONPATH="{os.path.abspath(os.path.join(os.curdir, "integ-tests"))}"',

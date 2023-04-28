@@ -1,29 +1,34 @@
-import subprocess
-from pulumi import automation as auto
-from app_util.config import TestConfig
-from util.logging import PulumiLogging, ServiceLogging, grouped_logging
+import json
 import logging
 import os
+import subprocess
+from typing import Dict, Any
+
 import boto3
+from pulumi import automation as auto
+
+from app_util.config import TestConfig
+from util.logging import PulumiLogging, ServiceLogging, grouped_logging
 
 log = logging.getLogger("DeploymentRunner")
 
+
 class AppDeployer:
     def __init__(self, region: str, pulumi_logger: PulumiLogging):
+        self.cfg: TestConfig | None = None
         self.region = region
         self.pulumi_logger = pulumi_logger
-        self.logs_client= boto3.client('logs', region_name=self.region)
-
+        self.logs_client = boto3.client('logs', region_name=self.region)
 
     def set_stack(self, stack: auto.Stack):
         self.stack = stack
 
-    def configure_and_deploy(self, cfg: TestConfig) -> str:
+    def configure_and_deploy(self, cfg: TestConfig) -> dict[str, Any]:
         with grouped_logging("Configuring stack"):
             self.configure_tags()
             self.configure_region()
             self.configure_pulumi_app(cfg)
-        for i in range(0,5):
+        for i in range(0, 5):
             with grouped_logging(f'Previewing stack {self.stack.name}, attempt #{i}'):
                 try:
                     self.stack.preview(on_output=self.pulumi_logger.log)
@@ -31,29 +36,36 @@ class AppDeployer:
                 except Exception as e:
                     log.error(f'Failed to preview stack', exc_info=True)
                     if i == 4:
-                        return ""
+                        return {}
         for i in range(0, 5):
             try:
                 with grouped_logging(f'Deploying stack {self.stack.name} to region {self.region}, attempt #{i}'):
-                    url = self.deploy_app()
-                    log.info(f'Deployed stack, {self.stack.name}, successfully. Got API Url: {url}')
-                    return url
+                    outputs = self.deploy_app()
+                    log.info(f'Deployed stack, {self.stack.name}, successfully. Got outputs: {json.dumps(outputs)}')
+                    return outputs
             except Exception as e:
                 with grouped_logging(f'Deployment of stack, {self.stack.name}, failed.'):
                     log.error(f'Deployment of stack, {self.stack.name}, failed.', exc_info=True)
                     log.info(f'Refreshing stack {self.stack.name}')
                     self.stack.refresh()
-        return ""
+        return {}
 
     # deploy_app deploys the stack and returns the first apiUrl expecting it to be the intended endpoint for tests
-    def deploy_app(self) -> str:
+    def deploy_app(self) -> Dict[str, Any]:
+        outputs = {}
         result: auto.UpResult = self.stack.up(on_output=self.pulumi_logger.log)
-        output: auto.OutputMap = result.outputs
-        value: auto.OutputValue = output.get("apiUrls")
-        if len(value.value) > 0:
-            if type(value.value[0]) is str:
-                return value.value[0]
-        return ""
+        stack_data: auto.Deployment = self.stack.export_stack()
+        resources = stack_data.deployment["resources"]
+        stages = [r for r in resources if r["type"] == "aws:apigateway/stage:Stage"]
+        for stage in stages:
+            if stage["urn"].endswith(f"{self.cfg.app_name}-{self.cfg.gateway_name}-stage"):
+                outputs["api_url"] = stage["outputs"]["invokeUrl"]
+        distributions = [r for r in resources if
+                         r["type"] == "aws:cloudfront/distribution:Distribution"]
+        for distribution in distributions:
+            if distribution["urn"].endswith(f"{self.cfg.app_name}-{self.cfg.static_unit_name}-cdn"):
+                outputs["frontend_url"] = f'https://{distribution["outputs"]["domainName"]}'
+        return outputs
 
     def configure_tags(self):
         result: subprocess.CompletedProcess[bytes] = subprocess.run(
@@ -69,16 +81,18 @@ class AppDeployer:
     def configure_pulumi_app(self, cfg: TestConfig):
         for key in cfg.pulumi_config:
             self.stack.set_config(f'{cfg.app_name}:{key}', auto.ConfigValue(cfg.pulumi_config[key]))
+            self.cfg = cfg
 
     def destroy_and_remove_stack(self, output_dir: str) -> bool:
-         for i in range(0,5):
+        for i in range(0, 5):
             try:
                 with grouped_logging(f'Destroying stack {self.stack.name}, attempt #{i}'):
                     self.pulumi_logger.set_file_name(f'destroy.txt')
                     self.stack.destroy(on_output=self.pulumi_logger.log)
                     log.info(f'Removing stack {self.stack.name}')
                     command = f'cd {output_dir}; pulumi stack rm -s {self.stack.name} -y'
-                    result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True, shell=True)
+                    result: subprocess.CompletedProcess[bytes] = subprocess.run(command, capture_output=True,
+                                                                                shell=True)
                     result.check_returncode()
                     return True
             except Exception as e:
@@ -87,12 +101,12 @@ class AppDeployer:
                     log.info(f'Refreshing stack {self.stack.name}')
                     self.stack.refresh()
                     return False
-            
+
     def download_logs(self, logger: ServiceLogging):
         deployment = self.stack.export_stack()
         resources = deployment.deployment.get('resources')
         for resource in resources:
-            
+
             # This covers lambda and ecs since we explicitly create the log groups for both
             if resource['type'] == 'aws:cloudwatch/logGroup:LogGroup':
                 log_group_name: str = resource['outputs']['name']
@@ -118,7 +132,6 @@ class AppDeployer:
                     stream_name: str = stream['logStreamName']
                     events = self.get_log_events(log_group_name, stream_name)
                     logger.write_file(stream_name.replace("/", "_"), events)
-                    
 
     def get_log_events(self, log_group_name: str, stream: str):
         kwargs = {

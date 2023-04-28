@@ -1,0 +1,6 @@
+default:
+  secrets: []
+  pulumi-config: {}
+  gateway-name: gateway-primary
+  static-unit-name: ""
+

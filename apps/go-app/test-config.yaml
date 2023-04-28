@@ -4,3 +4,6 @@ default:
   pulumi-config:
     ormenvvardb_username: testuser
     ormenvvardb_password: testpassword
+  gateway-name: go-gateway-primary
+  static-unit-name: ""
+

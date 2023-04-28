@@ -5,3 +5,5 @@ default:
     config-pysecret-FilePath: ./secrets/secret.txt
     sqlalchemy_username: myuser
     sqlalchemy_password: password1234
+  gateway-name: py-gateway-primary
+  static-unit-name: ""
