@@ -20,7 +20,7 @@ class TestRunner:
 
     def run(self) -> list[TestResult]:
         log.info(f'Running tests for {self.app_name} and is upgrade={self.upgrade_path}')
-        log.info(f'Targeting endpoint {self.api_endpoint}')
+        log.info(f'Targeting endpoint {self.outputs.get("api_url")}')
         log.info(f'Disabled tests: {self.disable_tests}')
         command = " ".join([
             "cd integ-tests;",
