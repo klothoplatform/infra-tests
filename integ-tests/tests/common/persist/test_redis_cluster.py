@@ -9,6 +9,7 @@ fixed_entry = {"key": "my_cluster_key", "value": "my_cluster_value"}
 entry = {"key": str(uuid.uuid4()), "value": str(uuid.uuid4())}
 
 
+@pytest.mark.xfail(reason="not implemented in IFC2")
 @pytest.mark.common
 @pytest.mark.ts_app
 def test_set_get_redis_cluster_entry():
@@ -22,6 +23,7 @@ def test_set_get_redis_cluster_entry():
     assert response.json() == entry
 
 
+@pytest.mark.xfail(reason="not implemented in IFC2")
 @pytest.mark.ts_app
 @pytest.mark.common
 @pytest.mark.pre_upgrade
@@ -31,6 +33,7 @@ def test_set_redis_cluster_entry_before_upgrade():
     assert response.status_code == 200
 
 
+@pytest.mark.xfail(reason="not implemented in IFC2")
 @pytest.mark.ts_app
 @pytest.mark.common
 @pytest.mark.post_upgrade

@@ -59,6 +59,7 @@ def run(directories, region, provider, config_filenames: str, no_destroy):
 
 
 def run_single(directory: str, region: str, provider: str, app_results: dict[str, AppResult], run_id: str, config_filenames: List[str], no_destroy: bool):
+    result = None
     try:
         os.environ['PULUMI_CONFIG_PASSPHRASE'] = ""
         builder = AppBuilder(directory, provider, run_id)
@@ -67,7 +68,7 @@ def run_single(directory: str, region: str, provider: str, app_results: dict[str
         app_runner = AppRunner(builder, deployer)
 
         config_base_path = os.path.join("apps", directory, "config", provider)
-        files: list[str] = os.listdir(config_base_path)
+        files: list[str] = [f for f in os.listdir(config_base_path) if f.endswith(".yaml")]
         files.sort()
 
         upgrade_path = False

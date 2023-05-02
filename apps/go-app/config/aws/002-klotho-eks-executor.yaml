@@ -1,3 +1,6 @@
 execution_units:
   executor: 
-      type: eks
+      type: kubernetes
+config:
+  mySecret:
+    path: ./secrets/secret.txt

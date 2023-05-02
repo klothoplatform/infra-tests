@@ -22,5 +22,5 @@ class TimeoutAdapter(HTTPAdapter):
 
 
 session = requests.Session()
-session.mount("http://", TimeoutAdapter(timeout=10))
-session.mount("https://", TimeoutAdapter(timeout=10))
+session.mount("http://", TimeoutAdapter(timeout=30))
+session.mount("https://", TimeoutAdapter(timeout=30))

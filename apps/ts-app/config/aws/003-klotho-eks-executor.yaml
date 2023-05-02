@@ -1,8 +1,8 @@
 execution_units:
   executor-1:
-    type: eks
+    type: kubernetes
   executor-2:
-    type: eks
+    type: kubernetes
     pulumi_params:
       nodeType: node
       replicas: 1
@@ -19,9 +19,9 @@ execution_units:
   task-1:
     type: lambda
   task-2:
-    type: ecs
+    type: kubernetes
   task-3:
-    type: eks
+    type: kubernetes
     helm_chart_options:
       install: true
 static_unit:

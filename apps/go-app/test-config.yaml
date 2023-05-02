@@ -2,6 +2,8 @@ default:
   secrets:
     - ./secrets/secret.txt
   pulumi-config:
-    config-mySecret-FilePath: ./secrets/secret.txt
     ormenvvardb_username: testuser
     ormenvvardb_password: testpassword
+  gateway-name: go-gateway-primary
+  static-unit-name: ""
+

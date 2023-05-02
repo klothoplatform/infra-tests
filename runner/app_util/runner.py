@@ -41,7 +41,8 @@ class AppRunner:
 
         log.info(f'Configuring and deploying app {builder.cfg.app_name}')
 
-        api_url: str = deployer.configure_and_deploy(builder.cfg)
+        outputs: dict[str, str] = deployer.configure_and_deploy(builder.cfg)
+        api_url = outputs.get("api_url", "")
         if api_url == "":
             return [stack, Result.DEPLOYMENT_FAILED, None]
 
@@ -49,8 +50,8 @@ class AppRunner:
         time.sleep(sleep_time)
 
         with grouped_logging("Run tests"):
-            url = format_url(api_url)
-            test_runner = TestRunner(builder.app_name, url, upgrade_tests, [])
+            outputs["api_url"] = format_url(api_url)
+            test_runner = TestRunner(builder.app_name, outputs, upgrade_tests, [])
             test_results = test_runner.run()
             final_result = Result.SUCCESS
             for test_result in test_results:

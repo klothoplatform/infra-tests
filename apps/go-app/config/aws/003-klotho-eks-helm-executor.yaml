@@ -1,5 +1,8 @@
 execution_units:
   executor: 
-    type: eks
+    type: kubernetes
     helm_chart_options:
-      install: true
+      directory: ./custom-charts
+config:
+  mySecret:
+    path: ./secrets/secret.txt

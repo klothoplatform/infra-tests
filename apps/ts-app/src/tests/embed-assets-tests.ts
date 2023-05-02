@@ -2,19 +2,17 @@ import {promises as fs} from "fs";
 import {resolve} from "path";
 
 export async function testGetEmbeddedAsset(req, res) {
-    const file = await fs.readFile(req.query.path, {encoding: req.query?.encoding});
-
-    if (file == null) {
+    try {
+        const file = await fs.readFile(req.query.path, {encoding: req.query?.encoding});
+        res.contentType(req.query.path);
+        res.send(file);
+    } catch (e) {
         res.status(404).send("not found");
-        return;
     }
-
-    res.contentType(req.query.path);
-    res.send(file);
 }
 
-export async function testListEmbeddedAssets(req, res) {
-    res.json(await getFiles("embedded_assets"));
+export async function debugListEmbeddedAssets(req, res) {
+    res.json(await getFiles("embedded-assets"));
 }
 
 async function getFiles(dir) {

@@ -1,14 +1,14 @@
 execution_units:
   executor-1:
-    type: lambda
+    type: ecs
   executor-2:
-    type: lambda
+    type: ecs
   task-1:
     type: lambda
   task-2:
     type: ecs
   task-3:
-    type: eks
+    type: kubernetes
 static_unit:
   static-unit:
     content_delivery_network:

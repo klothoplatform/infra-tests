@@ -1,7 +1,7 @@
 # Compile with default settings
 execution_units:
   executor: 
-    type: eks
+    type: kubernetes
     pulumi_params:
       nodeType: node
       replicas: 1
@@ -15,3 +15,6 @@ execution_units:
         cpuUtilization: 100
         memoryUtilization: 100
         maxReplicas: 4
+config:
+  mySecret:
+    path: ./secrets/secret.txt

@@ -5,6 +5,7 @@ from tests.util import resolve_primary_gw_url
 
 
 @pytest.mark.py_app
+@pytest.mark.ts_app
 @pytest.mark.go_app
 @pytest.mark.common
 def test_read_text_secret():

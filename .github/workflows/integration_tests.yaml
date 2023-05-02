@@ -5,6 +5,11 @@ on:
     - cron: '0 5 * * 1-5'
   workflow_dispatch:
     inputs:
+      klotho-ref:
+        description: the ref (branch, tag or SHA) of klotho pro to build
+        required: false
+        type: string
+        default: main
       provider:
         description: The provider to run on
         required: false
@@ -41,10 +46,11 @@ jobs:
   build-klotho:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout klotho
+      - name: checkout klotho (${{ inputs.klotho-ref }})
         uses: actions/checkout@v3
         with:
           repository: klothoplatform/klotho-pro
+          ref: ${{ inputs.klotho-ref }}
           token: ${{ secrets.KLOTHO_PRO_READ_PAT }}  # the "infra-tests checkout" PAT, owned by @klotho-bot
       - uses: actions/setup-go@v3
         with:
@@ -78,6 +84,8 @@ jobs:
       - name: install klotho main
         run: |
           chmod +x klotho_main
+          # TODO remove the release override
+          cp klotho_main klotho_release
       - name: run tests
         run: |
           if [[ ${{ github.event_name == 'workflow_dispatch' }} == true ]]; then

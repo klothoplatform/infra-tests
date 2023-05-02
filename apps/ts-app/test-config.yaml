@@ -8,3 +8,5 @@ default:
     typeormdb_password: e407b247
     sequelizeenvvardb_username: dbuser
     sequelizeenvvardb_password: s987asd8
+  gateway-name: ts-gateway-primary
+  static-unit-name: static-unit

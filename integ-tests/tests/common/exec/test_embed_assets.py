@@ -8,7 +8,8 @@ from tests.util import resolve_primary_gw_url, get_file_content
 embedded_text_file = "embedded-assets/embedded-text.txt"
 excluded_text_file = "embedded-assets/excluded-text.txt"
 
-@pytest.mark.xfail(condition=app_name=="go-app" and provider == "aws",
+
+@pytest.mark.xfail(condition=app_name == "go-app" and provider == "aws",
                    reason="https://github.com/klothoplatform/klotho/issues/341")
 @pytest.mark.cs_app
 @pytest.mark.ts_app

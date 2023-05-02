@@ -1,7 +1,7 @@
 import * as events from "events"
 
 /**
- * @klotho::pubsub {
+ * @klotho:disabled::pubsub {
  *   id = "pubsub-emitter"
  * }
  */
