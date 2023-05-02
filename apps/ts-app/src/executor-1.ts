@@ -32,7 +32,6 @@ router1.use(
 
 
 router1.get("/test/exec/execute-cross-exec-tasks", testExecuteCrossExecTasks);
-router1.get("/test/exec/execute-custom-dockerfile", testIsUsingCustomDockerfile);
 
 router1.get("/test/persist-secret/read-text-secret", persist.testReadTextSecret);
 router1.get("/test/persist-secret/read-binary-secret", persist.testReadBinarySecret);
